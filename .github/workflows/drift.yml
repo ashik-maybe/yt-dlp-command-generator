@@ -1,0 +1,71 @@
+name: Drift
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.5
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Download latest yt-dlp
+        run: |
+          curl -fsSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /tmp/yt-dlp
+          chmod +x /tmp/yt-dlp
+          python3 /tmp/yt-dlp --version > /tmp/yt-dlp-version.txt
+          python3 /tmp/yt-dlp --help > .cache/yt-dlp-help.txt
+
+      - name: Update pinned version
+        run: |
+          VERSION="$(cat /tmp/yt-dlp-version.txt)"
+          export VERSION
+          node --input-type=module -e "
+          import { readFileSync, writeFileSync } from 'node:fs';
+          const version = process.env.VERSION.trim();
+          for (const file of ['tools/spec-compiler/generate.mjs', 'scripts/spec-check.mjs']) {
+            let text = readFileSync(file, 'utf8');
+            text = text.replace(/2026\\.11\\.23/g, version);
+            writeFileSync(file, text);
+          }
+          const sources = 'tools/SOURCES.md';
+          let src = readFileSync(sources, 'utf8');
+          src = src.replace(/## yt-dlp [\\d.]+/, '## yt-dlp ' + version);
+          src = src.replace(/- Version: [\\d.]+/, '- Version: ' + version);
+          src = src.replace(/releases\\/tag\\/[\\d.]+/g, 'releases/tag/' + version);
+          src = src.replace(/releases\\/download\\/[\\d.]+\\/yt-dlp/g, 'releases/download/' + version + '/yt-dlp');
+          writeFileSync(sources, src);
+          "
+
+      - name: Regenerate spec
+        run: node tools/spec-compiler/generate.mjs
+
+      - name: Run gate
+        run: bun run ci
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/drift-yt-dlp-spec
+          delete-branch: true
+          title: 'chore: update yt-dlp spec'
+          commit-message: 'chore: update yt-dlp spec'
+          body: |
+            Automated drift update.
+
+            - Downloaded latest yt-dlp.
+            - Regenerated spec from latest help text.
+            - Ran `bun run ci`.

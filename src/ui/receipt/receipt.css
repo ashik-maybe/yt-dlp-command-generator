@@ -1,0 +1,46 @@
+/* Command receipt: plain, archival. Tokens from src/styles/tokens.css. */
+
+.receipt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.receipt-sentences {
+  margin: 0;
+  font: var(--text-body);
+  color: var(--ink);
+}
+
+.receipt-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.receipt-confidence {
+  font: var(--text-body);
+  color: var(--ink-2);
+}
+
+.receipt-stamp {
+  font: var(--text-mono);
+  color: var(--ink);
+}
+
+.receipt-code {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper);
+  font: var(--text-mono);
+  color: var(--ink);
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+
+.receipt-copy-icon {
+  margin-left: var(--space-1);
+}
