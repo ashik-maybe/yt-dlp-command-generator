@@ -1,1 +1,26 @@
 @import 'tailwindcss';
+@import './styles/tokens.css';
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: var(--text-body);
+}
+
+.app-shell {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+}
+
+h1 {
+  font: var(--text-display);
+  line-height: 1.05;
+  max-width: 20ch;
+  text-wrap: balance;
+}
