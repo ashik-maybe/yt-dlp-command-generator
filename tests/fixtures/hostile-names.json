@@ -1,0 +1,18 @@
+[
+  "plain.mp4",
+  "video with spaces.mp4",
+  "it's a clip.mp4",
+  "say \"hello\".mp4",
+  "price $(whoami).mp4",
+  "back`tick`.mp4",
+  "semi;colon.mp4",
+  "line\nbreak.mp4",
+  "tab\tseparated.mp4",
+  "dollar$sign.mp4",
+  "star*glob.mp4",
+  "question?mark.mp4",
+  "brackets[1].mp4",
+  "unicodé-日本語.mp4",
+  "quote'and\"both.mp4",
+  "leading-dash.mp4"
+]
