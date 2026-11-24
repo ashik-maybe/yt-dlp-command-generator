@@ -1,0 +1,42 @@
+/* Handoff panel styles. Tokens come from src/styles/tokens.css. */
+
+.handoff {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.handoff-title {
+  font: var(--text-display);
+  margin: 0;
+}
+
+.handoff-install {
+  font: var(--text-mono);
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+  overflow-wrap: anywhere;
+}
+
+.handoff-keystrokes {
+  font: var(--text-body);
+  color: var(--ink-2);
+}
+
+.handoff-version {
+  min-height: var(--space-11);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  font: var(--text-body);
+}
+
+.handoff-version:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
