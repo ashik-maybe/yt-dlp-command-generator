@@ -28,3 +28,7 @@ tools/bin/ffmpeg
 tools/bin/ffprobe
 tools/bin/yt-dlp
 tools/bin/*.zip
+
+# Test artifacts
+test-results/
+playwright-report/
