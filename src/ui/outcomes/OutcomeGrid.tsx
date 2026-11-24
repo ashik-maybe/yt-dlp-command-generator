@@ -1,4 +1,12 @@
-import { AudioLines, Copy, FileCog, History, ListOrdered, Video, type LucideIcon } from 'lucide-react'
+import {
+  AudioLines,
+  Copy,
+  FileCog,
+  History,
+  ListOrdered,
+  Video,
+  type LucideIcon,
+} from 'lucide-react'
 import { outcomeStrings } from '../../content/index.ts'
 import { Button } from '../primitives/Button.tsx'
 import { Icon } from '../primitives/Icon.tsx'
