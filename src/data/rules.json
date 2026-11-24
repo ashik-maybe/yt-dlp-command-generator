@@ -1,0 +1,76 @@
+[
+  {
+    "code": "CONFLICT",
+    "severity": "error",
+    "message": "cookies conflicts with cookies-from-browser",
+    "fix": "Use only one of cookies or cookies-from-browser.",
+    "forbidAny": ["cookies"]
+  },
+  {
+    "code": "CONFLICT",
+    "severity": "error",
+    "message": "cookies conflicts with cookies-from-browser",
+    "fix": "Use only one of cookies or cookies-from-browser.",
+    "forbidAny": ["cookies-from-browser"]
+  },
+  {
+    "code": "CONFLICT",
+    "severity": "error",
+    "message": "continue conflicts with no-continue",
+    "fix": "Drop --continue or the no-continue request.",
+    "forbidAny": ["continue"]
+  },
+  {
+    "code": "DOWNLOAD_SECTIONS_INVALID",
+    "severity": "error",
+    "message": "download-sections value must contain a start and an end",
+    "fix": "Use a value like *00:10:00-00:20:00.",
+    "valueFlags": ["download-sections"],
+    "valueMustContain": ["start", "end"]
+  },
+  {
+    "code": "EMBED_SUBS_REQUIRES_SUBTITLE",
+    "severity": "error",
+    "message": "embed-subs requires a subtitle option",
+    "fix": "Add --write-subs, --write-auto-subs or --sub-langs.",
+    "appliesWhen": ["embed-subs"],
+    "requireAny": ["write-subs", "write-auto-subs", "sub-langs"]
+  },
+  {
+    "code": "MISSING_REQUIRED",
+    "severity": "error",
+    "message": "merge-output-format requires a merge",
+    "fix": "Add --merge-output.",
+    "appliesWhen": ["merge-output-format"],
+    "requireAny": ["merge-output"]
+  },
+  {
+    "code": "JS_RUNTIMES_MISSING",
+    "severity": "warning",
+    "message": "js-runtimes is missing; youtube URLs need it",
+    "fix": "Add --js-runtimes to the plan.",
+    "urls": ["youtube"],
+    "requireAny": ["js-runtimes"]
+  },
+  {
+    "code": "DEPRECATED_FLAG",
+    "severity": "warning",
+    "message": "metadata-from-title is deprecated",
+    "fix": "Use --replace-in-metadata instead.",
+    "forbidAny": ["metadata-from-title"]
+  },
+  {
+    "code": "DEPRECATED_FLAG",
+    "severity": "warning",
+    "message": "referer is deprecated",
+    "fix": "Use --add-headers instead.",
+    "forbidAny": ["referer"]
+  },
+  {
+    "code": "DEPRECATED_FLAG",
+    "severity": "warning",
+    "message": "playlist-reverse is deprecated",
+    "fix": "Use --reverse instead.",
+    "forbidAny": ["playlist-reverse"]
+  }
+]
