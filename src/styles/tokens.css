@@ -1,0 +1,46 @@
+/* P1 design tokens. Palette and roles from design/DIRECTION.md. */
+
+:root {
+  /* Neutral ramp */
+  --paper: #edefea;
+  --panel: #e3e7de;
+  --ink: #111a20;
+  --ink-2: #5a6660;
+  --rule: #c7cec4;
+
+  /* Accent */
+  --stamp: #2a3fd4;
+  --alert: #a3271c;
+  --ok: #1e6b4f;
+
+  /* Spacing, 4px steps */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-9: 36px;
+  --space-10: 40px;
+  --space-11: 44px;
+  --space-12: 48px;
+
+  /* Sharp radius */
+  --radius: 0px;
+  --radius-sm: 0px;
+  --radius-lg: 0px;
+
+  /* Body type */
+  --font-size-body: 17px;
+  --line-height-body: 1.55;
+
+  /* Three text roles */
+  --font-display: 'Archivo', sans-serif;
+  --font-body: 'Archivo', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --text-display: 700 1.05em var(--font-display);
+  --text-body: 400 var(--font-size-body) / var(--line-height-body) var(--font-body);
+  --text-mono: 400 0.9em var(--font-mono);
+}
