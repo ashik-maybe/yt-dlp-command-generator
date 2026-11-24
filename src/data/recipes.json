@@ -1,0 +1,74 @@
+[
+  {
+    "id": "best-video",
+    "name": "Best video",
+    "args": [{ "flag": "format", "value": "bestvideo+bestaudio/best" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "format-1080p",
+    "name": "Download at 1080p",
+    "args": [{ "flag": "format", "value": "bv[height<=1080]+ba/best" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "format-4k",
+    "name": "Download at 4K",
+    "args": [{ "flag": "format", "value": "bv[height<=2160]+ba/best" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "audio-mp3",
+    "name": "Extract audio as MP3",
+    "args": [{ "flag": "extract-audio" }, { "flag": "audio-format", "value": "mp3" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "audio-flac",
+    "name": "Extract audio as FLAC",
+    "args": [{ "flag": "extract-audio" }, { "flag": "audio-format", "value": "flac" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "playlist-range",
+    "name": "Playlist range",
+    "args": [{ "flag": "playlist-items", "value": "1:10" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "clip-by-section",
+    "name": "Clip by time section",
+    "args": [{ "flag": "download-sections", "value": "*10:20" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "embed-subs",
+    "name": "Embed subtitles",
+    "args": [{ "flag": "embed-subs" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "thumbnail",
+    "name": "Embed thumbnail",
+    "args": [{ "flag": "embed-thumbnail" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "metadata-chapters",
+    "name": "Metadata and chapters",
+    "args": [{ "flag": "embed-metadata" }, { "flag": "embed-chapters" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "sponsorblock",
+    "name": "SponsorBlock removal",
+    "args": [{ "flag": "sponsorblock-remove", "value": "sponsor" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "archive-resume",
+    "name": "Archive and resume",
+    "args": [{ "flag": "download-archive", "value": "archive.txt" }, { "flag": "continue" }],
+    "confidence": "verified"
+  }
+]

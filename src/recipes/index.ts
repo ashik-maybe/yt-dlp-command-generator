@@ -1,0 +1,24 @@
+import { quote } from '../core/render/quote.ts'
+import type { Plan, Recipe, Shell } from '../core/types.ts'
+import recipes from '../data/recipes.json'
+
+/** Tool name every recipe builds a plan for. */
+const TOOL = 'yt-dlp'
+
+/**
+ * Substitute user values into a recipe and return the plan.
+ *
+ * An arg whose flag has a value in `values` gets that value quoted for
+ * `shell`; args without a user value pass through unchanged.
+ */
+export function toPlan(recipe: Recipe, values: Record<string, string>, shell: Shell): Plan {
+  const args = recipe.args.map((arg) => {
+    if (arg.flag === null) return arg
+    const value = values[arg.flag]
+    if (value === undefined) return arg
+    return { ...arg, value: quote(value, shell) }
+  })
+  return { tool: TOOL, args, shell, confidence: recipe.confidence }
+}
+
+export { recipes }
