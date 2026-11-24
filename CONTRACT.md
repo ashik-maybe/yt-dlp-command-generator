@@ -24,90 +24,90 @@ Values: `verified`, `validated`, `unverified`.
 
 One argument of a `Command` or a `Plan`.
 
-| Field | Type | Meaning |
-|---|---|---|
-| `flag` | string or null | Flag name without leading dashes. Null for an operand. |
-| `value` | string, optional | Value bound to the flag or operand. |
-| `alias` | string, optional | Alias the recipe selects, when the spec offers one. |
-| `anchor` | string, optional | Doc anchor of the flag, from the spec. |
-| `values` | string list, optional | Repeated values for repeatable flags. |
+| Field    | Type                  | Meaning                                                |
+| -------- | --------------------- | ------------------------------------------------------ |
+| `flag`   | string or null        | Flag name without leading dashes. Null for an operand. |
+| `value`  | string, optional      | Value bound to the flag or operand.                    |
+| `alias`  | string, optional      | Alias the recipe selects, when the spec offers one.    |
+| `anchor` | string, optional      | Doc anchor of the flag, from the spec.                 |
+| `values` | string list, optional | Repeated values for repeatable flags.                  |
 
 ### Command
 
-| Field | Type | Meaning |
-|---|---|---|
-| `program` | string | Executable name, for example `yt-dlp`. |
-| `args` | `Arg[]` | Ordered arguments of the command. |
-| `shell` | `Shell` | Shell the command renders for. |
+| Field     | Type    | Meaning                                |
+| --------- | ------- | -------------------------------------- |
+| `program` | string  | Executable name, for example `yt-dlp`. |
+| `args`    | `Arg[]` | Ordered arguments of the command.      |
+| `shell`   | `Shell` | Shell the command renders for.         |
 
 ### Plan
 
 A recipe plus the user values.
 
-| Field | Type |
-|---|---|
-| `tool` | string |
-| `args` | `Arg[]` |
-| `shell` | `Shell` |
+| Field        | Type         |
+| ------------ | ------------ |
+| `tool`       | string       |
+| `args`       | `Arg[]`      |
+| `shell`      | `Shell`      |
 | `confidence` | `Confidence` |
 
 ### Finding
 
 A review item.
 
-| Field | Type |
-|---|---|
-| `severity` | `Severity` |
-| `code` | string |
-| `message` | string |
+| Field      | Type             |
+| ---------- | ---------------- |
+| `severity` | `Severity`       |
+| `code`     | string           |
+| `message`  | string           |
 | `location` | string, optional |
-| `fix` | string, optional |
+| `fix`      | string, optional |
 
 ### Recipe
 
 A typed scenario. Maps one user goal to IR arguments.
 
-| Field | Type |
-|---|---|
-| `id` | string |
-| `name` | string |
-| `args` | `Arg[]` |
+| Field        | Type         |
+| ------------ | ------------ |
+| `id`         | string       |
+| `name`       | string       |
+| `args`       | `Arg[]`      |
 | `confidence` | `Confidence` |
 
 ### OptionSpec
 
 One option of a tool.
 
-| Field | Type |
-|---|---|
-| `flag` | string |
-| `metavar` | string, optional |
-| `choices` | string list, optional |
-| `default` | string, optional |
-| `anchor` | string, optional |
-| `isBoolean` | boolean, optional |
+| Field       | Type                  |
+| ----------- | --------------------- |
+| `flag`      | string                |
+| `metavar`   | string, optional      |
+| `choices`   | string list, optional |
+| `default`   | string, optional      |
+| `anchor`    | string, optional      |
+| `isBoolean` | boolean, optional     |
 
 ### ToolSpec
 
 The pinned spec of one tool version.
 
-| Field | Type |
-|---|---|
-| `name` | string |
-| `version` | string |
-| `pinnedVersion` | string |
-| `options` | `OptionSpec[]` |
-| `deprecated` | string list |
-| `helpFile` | string, optional |
+| Field           | Type             |
+| --------------- | ---------------- |
+| `name`          | string           |
+| `version`       | string           |
+| `pinnedVersion` | string           |
+| `options`       | `OptionSpec[]`   |
+| `deprecated`    | string list      |
+| `helpFile`      | string, optional |
 
 ### Route
 
 One screen of the app.
 
-| Field | Type |
-|---|---|
-| `screen` | `home`, `recipes`, or `generate` |
-| `recipeId` | string, optional |
+| Field      | Type                             |
+| ---------- | -------------------------------- |
+| `screen`   | `home`, `recipes`, or `generate` |
+| `recipeId` | string, optional                 |
 
 ## Interfaces
 
@@ -143,25 +143,25 @@ Re-exports the public API: every type above and the five functions.
 
 Stub errors. Each stub throws exactly `Error('NotImplemented: <name>')`.
 
-| Code | Meaning |
-|---|---|
-| `NotImplemented: quote` | Quote stub. |
-| `NotImplemented: render` | Render stub. |
-| `NotImplemented: validate` | Validate stub. |
-| `NotImplemented: planFromRecipe` | Plan stub. |
-| `NotImplemented: parseHash` | Route stub. |
-| `NotImplemented: buildHash` | Route stub. |
+| Code                             | Meaning        |
+| -------------------------------- | -------------- |
+| `NotImplemented: quote`          | Quote stub.    |
+| `NotImplemented: render`         | Render stub.   |
+| `NotImplemented: validate`       | Validate stub. |
+| `NotImplemented: planFromRecipe` | Plan stub.     |
+| `NotImplemented: parseHash`      | Route stub.    |
+| `NotImplemented: buildHash`      | Route stub.    |
 
 Validation finding codes. `validate` returns these codes in findings.
 
-| Code | Meaning |
-|---|---|
-| `UNKNOWN_FLAG` | The plan emits a flag the spec does not list. |
-| `MISSING_REQUIRED` | The plan drops a required flag the spec lists. |
-| `REQUIRES_UNSATISFIED` | A requires chain is not satisfied. |
-| `CONFLICT` | Two plan flags conflict per the spec. |
-| `UNSUPPORTED` | The plan uses a flag the spec marks unsupported. |
-| `DEPRECATED_FLAG` | The plan uses a flag the spec marks deprecated. |
+| Code                   | Meaning                                          |
+| ---------------------- | ------------------------------------------------ |
+| `UNKNOWN_FLAG`         | The plan emits a flag the spec does not list.    |
+| `MISSING_REQUIRED`     | The plan drops a required flag the spec lists.   |
+| `REQUIRES_UNSATISFIED` | A requires chain is not satisfied.               |
+| `CONFLICT`             | Two plan flags conflict per the spec.            |
+| `UNSUPPORTED`          | The plan uses a flag the spec marks unsupported. |
+| `DEPRECATED_FLAG`      | The plan uses a flag the spec marks deprecated.  |
 
 ## Invariants
 
