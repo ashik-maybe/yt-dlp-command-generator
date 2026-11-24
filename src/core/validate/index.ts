@@ -23,6 +23,10 @@ interface Rule {
   valueFlags?: string[]
   /** Substrings that must appear in the plan value. */
   valueMustContain?: string[]
+  /** Finding fires when both of these flags are in the plan. */
+  conflictPair?: [string, string]
+  /** Finding fires when a value of this flag does not match the regex. */
+  valueMatches?: { flag: string; pattern: string }
 }
 
 function planFlags(plan: Plan): string[] {
@@ -83,6 +87,36 @@ export function validate(plan: Plan, spec: ToolSpec): Finding[] {
         message: rule.message,
         fix: rule.fix,
       })
+    }
+
+    const pair = rule.conflictPair
+    if (pair && pair.every(hasFlag)) {
+      findings.push({
+        severity: rule.severity,
+        code: rule.code,
+        message: rule.message,
+        fix: rule.fix,
+      })
+    }
+
+    const valueMatch = rule.valueMatches
+    if (valueMatch) {
+      const regex = new RegExp(valueMatch.pattern)
+      const bad = plan.args.some((arg) => {
+        if (arg.flag !== valueMatch.flag) return false
+        const values = [arg.value, ...(arg.values ?? [])].filter(
+          (value): value is string => value !== undefined,
+        )
+        return values.some((value) => !regex.test(value))
+      })
+      if (bad) {
+        findings.push({
+          severity: rule.severity,
+          code: rule.code,
+          message: rule.message,
+          fix: rule.fix,
+        })
+      }
     }
 
     const valueFlags = rule.valueFlags

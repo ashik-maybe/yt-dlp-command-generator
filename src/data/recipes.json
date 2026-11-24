@@ -44,7 +44,12 @@
   {
     "id": "embed-subs",
     "name": "Embed subtitles",
-    "args": [{ "flag": "embed-subs" }],
+    "args": [
+      { "flag": "write-subs" },
+      { "flag": "write-auto-subs" },
+      { "flag": "sub-langs", "value": "all" },
+      { "flag": "embed-subs" }
+    ],
     "confidence": "verified"
   },
   {
