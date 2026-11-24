@@ -6,7 +6,7 @@ export default defineConfig({
   retries: 0,
   reporter: [['list']],
   use: {
-    baseURL: 'http://localhost:4173',
+    baseURL: 'http://localhost:4174',
     trace: 'off',
   },
   projects: [
@@ -16,8 +16,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'bun run preview --port 4173',
-    url: 'http://localhost:4173',
+    command: 'bun run preview --port 4174',
+    url: 'http://localhost:4174',
     reuseExistingServer: true,
     timeout: 120_000,
   },
