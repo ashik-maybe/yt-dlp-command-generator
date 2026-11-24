@@ -2,14 +2,12 @@ import type { Arg, Command, Shell } from '../types.ts'
 import { quote } from './quote.ts'
 
 /**
- * Render rules.
+ * Render a command from the IR.
  *
  * - The program is emitted first, unquoted.
- * - An Arg with a null flag is a bare operand: its value, quoted, with no
- *   dash added.
- * - An Arg with values is repeated: one `flag value` pair per value.
- * - An Arg with a value and no values emits `flag value`.
- * - An Arg with a flag and no value emits the flag name alone.
+ * - A null flag is a bare operand. Its value is quoted.
+ * - A bare flag name from the spec is written with two dashes.
+ * - The renderer owns shell quoting. Values enter the IR unquoted.
  */
 export function render(command: Command, shell: Shell): string {
   const parts: string[] = [command.program]
@@ -23,11 +21,12 @@ function renderArg(arg: Arg, shell: Shell): string[] {
   if (arg.flag === null) {
     return arg.value === undefined ? [] : [quote(arg.value, shell)]
   }
+  const flag = arg.flag.startsWith('-') ? arg.flag : `--${arg.flag}`
   if (arg.values !== undefined) {
-    return arg.values.map((value) => `${arg.flag} ${quote(value, shell)}`)
+    return arg.values.map((value) => `${flag} ${quote(value, shell)}`)
   }
   if (arg.value !== undefined) {
-    return [`${arg.flag} ${quote(arg.value, shell)}`]
+    return [`${flag} ${quote(arg.value, shell)}`]
   }
-  return [arg.flag]
+  return [flag]
 }

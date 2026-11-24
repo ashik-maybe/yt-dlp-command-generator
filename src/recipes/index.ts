@@ -1,4 +1,3 @@
-import { quote } from '../core/render/quote.ts'
 import type { Plan, Recipe, Shell } from '../core/types.ts'
 import recipes from '../data/recipes.json'
 
@@ -16,7 +15,7 @@ export function toPlan(recipe: Recipe, values: Record<string, string>, shell: Sh
     if (arg.flag === null) return arg
     const value = values[arg.flag]
     if (value === undefined) return arg
-    return { ...arg, value: quote(value, shell) }
+    return { ...arg, value }
   })
   return { tool: TOOL, args, shell, confidence: recipe.confidence }
 }
