@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Pinned tool binaries
+tools/bin/ffmpeg
+tools/bin/ffprobe
+tools/bin/yt-dlp
+tools/bin/*.zip
