@@ -1,0 +1,35 @@
+/* Calibration panel styles. */
+.calibration-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.calibration-textarea {
+  width: 100%;
+  min-height: var(--space-12);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  font: var(--text-body);
+  resize: vertical;
+}
+
+.calibration-textarea:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+
+.calibration-rows {
+  border-collapse: collapse;
+  font: var(--text-body);
+}
+
+.calibration-rows th,
+.calibration-rows td {
+  border-bottom: 1px solid var(--rule);
+  padding: var(--space-1) var(--space-2);
+  text-align: left;
+}
