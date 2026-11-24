@@ -1,4 +1,4 @@
-import '../styles/primitives.css'
+import '../../styles/primitives.css'
 
 export { Button, type ButtonVariant } from './Button.tsx'
 export { Callout, type CalloutTone } from './Callout.tsx'

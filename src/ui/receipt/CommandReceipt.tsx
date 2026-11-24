@@ -72,7 +72,7 @@ export function CommandReceipt({ command, confidence, version, sentences }: Comm
           onChange={(value) => setSingleLine(value === ONE_LINE)}
         />
       </div>
-      <pre className="receipt-code">
+      <pre className="receipt-code" aria-live="polite" aria-label="Generated command">
         <code>{text}</code>
       </pre>
       <Button className="receipt-copy" variant="secondary" onClick={copyCommand}>
