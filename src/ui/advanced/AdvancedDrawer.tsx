@@ -10,6 +10,7 @@ import {
 } from '@radix-ui/react-dialog'
 import type { ReactNode } from 'react'
 import { useMemo, useState } from 'react'
+import { rawArgSnippets } from '../../content/index.ts'
 import type { OptionSpec } from '../../core/types.ts'
 import { spec } from '../../spec/index.ts'
 import { Button } from '../primitives/Button.tsx'
@@ -62,6 +63,26 @@ export function AdvancedDrawer({ children, open, onOpenChange }: AdvancedDrawerP
             Paste raw arguments, or pick an option from the spec.
           </DialogDescription>
           <Callout tone="warning">Raw arguments are not verified against the spec.</Callout>
+          <div className="advanced-snippets">
+            <p className="advanced-field">Snippets</p>
+            <ul className="advanced-snippet-list">
+              {rawArgSnippets.map((snippet) => (
+                <li className="advanced-snippet" key={snippet.id}>
+                  <button
+                    type="button"
+                    className="advanced-snippet-button"
+                    onClick={() => setRaw(snippet.flag)}
+                  >
+                    <span className="advanced-snippet-label">{snippet.label}</span>
+                    <code className="advanced-snippet-flag">{snippet.flag}</code>
+                  </button>
+                  {snippet.warning ? (
+                    <p className="advanced-snippet-warning">{snippet.warning}</p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </div>
           <label className="advanced-field" htmlFor="advanced-raw">
             Raw arguments
           </label>

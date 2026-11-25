@@ -27,6 +27,10 @@ interface Rule {
   conflictPair?: [string, string]
   /** Finding fires when a value of this flag does not match the regex. */
   valueMatches?: { flag: string; pattern: string }
+  /** Finding fires when a value of this flag matches the regex. */
+  valueRejects?: { flag: string; pattern: string }
+  /** Finding fires when a numeric value of this flag is above max. */
+  valueAbove?: { flag: string; max: number }
 }
 
 function planFlags(plan: Plan): string[] {
@@ -108,6 +112,48 @@ export function validate(plan: Plan, spec: ToolSpec): Finding[] {
           (value): value is string => value !== undefined,
         )
         return values.some((value) => !regex.test(value))
+      })
+      if (bad) {
+        findings.push({
+          severity: rule.severity,
+          code: rule.code,
+          message: rule.message,
+          fix: rule.fix,
+        })
+      }
+    }
+
+    const valueRejects = rule.valueRejects
+    if (valueRejects) {
+      const regex = new RegExp(valueRejects.pattern)
+      const bad = plan.args.some((arg) => {
+        if (arg.flag !== valueRejects.flag) return false
+        const values = [arg.value, ...(arg.values ?? [])].filter(
+          (value): value is string => value !== undefined,
+        )
+        return values.some((value) => regex.test(value))
+      })
+      if (bad) {
+        findings.push({
+          severity: rule.severity,
+          code: rule.code,
+          message: rule.message,
+          fix: rule.fix,
+        })
+      }
+    }
+
+    const valueAbove = rule.valueAbove
+    if (valueAbove) {
+      const bad = plan.args.some((arg) => {
+        if (arg.flag !== valueAbove.flag) return false
+        const values = [arg.value, ...(arg.values ?? [])].filter(
+          (value): value is string => value !== undefined,
+        )
+        return values.some((value) => {
+          const num = Number(value)
+          return Number.isFinite(num) && num > valueAbove.max
+        })
       })
       if (bad) {
         findings.push({

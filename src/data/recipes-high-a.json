@@ -1,0 +1,26 @@
+[
+  {
+    "id": "list-formats",
+    "name": "List formats",
+    "args": [{ "flag": "list-formats" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "match-filters",
+    "name": "Match filters",
+    "args": [{ "flag": "match-filters", "value": "!is_live" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "format-sort-small",
+    "name": "Format sort by size",
+    "args": [{ "flag": "format-sort", "value": "+size,+br,+res,+fps" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "use-extractors",
+    "name": "Use extractors",
+    "args": [{ "flag": "use-extractors", "value": "youtube" }],
+    "confidence": "verified"
+  }
+]

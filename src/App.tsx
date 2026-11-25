@@ -22,22 +22,22 @@ import { Callout, Field } from './ui/primitives/index.ts'
 import { CommandReceipt } from './ui/receipt/index.ts'
 
 const OUTCOME_TO_RECIPE: Record<string, string> = {
-  outcomeDownloadVideo: 'best-video',
-  outcomeExtractAudio: 'audio-mp3',
-  outcomeConvertFormat: 'format-1080p',
-  outcomeResumeDownload: 'archive-resume',
-  outcomeListFormats: 'best-video',
-  outcomeCopyCommand: 'best-video',
-  chapters: 'chapters',
-  'thumbnails-embed': 'thumbnails-embed',
-  'subtitles-only': 'subtitles-only',
-  'playlist-reverse': 'playlist-reverse',
-  'archive-skip': 'archive-skip',
-  'format-sort': 'format-sort',
-  'sponsorblock-all': 'sponsorblock-all',
-  'metadata-only': 'metadata-only',
-  'geo-bypass': 'geo-bypass',
-  sleep: 'sleep',
+  'list-formats': 'list-formats',
+  'match-filters': 'match-filters',
+  'format-sort-small': 'format-sort-small',
+  'use-extractors': 'use-extractors',
+  'parse-metadata': 'parse-metadata',
+  'split-chapters': 'split-chapters',
+  'force-keyframes-at-cuts': 'force-keyframes-at-cuts',
+  'load-info-json': 'load-info-json',
+  impersonate: 'impersonate',
+  'concurrent-fragments': 'concurrent-fragments',
+  'throttled-rate': 'throttled-rate',
+  'sleep-jitter': 'sleep-jitter',
+  'template-playlist': 'template-playlist',
+  'template-chapter': 'template-chapter',
+  'stdout-pipe': 'stdout-pipe',
+  'exec-guarded': 'exec-guarded',
 }
 
 const QUALITY_TO_RECIPE: Record<string, string> = {
