@@ -1,0 +1,10 @@
+{
+  "tool": "yt-dlp",
+  "flags": [],
+  "provenance": {
+    "version": "2026.11.23",
+    "sourceUrl": "https://github.com/yt-dlp/yt-dlp/blob/master/README.md",
+    "generatedDate": "2026-11-25",
+    "readmeSha256": "a3aaf44da351a61ebdbc3c714eb4d39887b45d8761c78adf444a9aeea70e3290"
+  }
+}
