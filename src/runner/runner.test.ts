@@ -61,8 +61,18 @@ describe('runProcess', () => {
   test('cancels with AbortSignal', async () => {
     const bin = await makeBin('process.stdout.write("start\\n"); setInterval(() => {}, 1000)')
     const controller = new AbortController()
-    const promise = runProcess([process.execPath, bin], controller.signal)
-    setTimeout(() => controller.abort(), 50)
+    let sawStart = false
+    const sink: ProgressSink = {
+      onStdout: (chunk) => {
+        if (chunk.includes('start')) sawStart = true
+      },
+    }
+    const promise = runProcess([process.execPath, bin], controller.signal, sink)
+    const deadline = Date.now() + 2000
+    while (!sawStart && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, 5))
+    }
+    controller.abort()
     const result = await promise
     expect(result.exitCode).toBe(130)
     expect(result.stdout).toContain('start')
