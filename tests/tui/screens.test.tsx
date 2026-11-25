@@ -53,7 +53,14 @@ describe('OutcomeScreen', () => {
 describe('OptionsScreen', () => {
   it('renders quality selector and raw args field', () => {
     const { lastFrame } = render(
-      <OptionsScreen quality="best" shell="posix" rawArgs="" onChange={() => {}} />,
+      <OptionsScreen
+        quality="best"
+        shell="posix"
+        rawArgs=""
+        sourceUrl=""
+        onSourceUrl={() => {}}
+        onChange={() => {}}
+      />,
     )
 
     const frame = lastFrame() ?? ''

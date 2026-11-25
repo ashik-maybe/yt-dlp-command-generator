@@ -1,12 +1,13 @@
 import { Box, Text, useApp, useInput } from 'ink'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { planFromRecipe, render } from '../core/index.ts'
-import type { Arg, Plan, Recipe } from '../core/types.ts'
+import type { Arg, Finding, Plan, Recipe } from '../core/types.ts'
 import { parseProgressLine } from '../progress/index.ts'
 import { recipes } from '../recipes/index.ts'
 import { runProcess } from '../runner/index.ts'
 import { compileRuntimeSpec, detectBinary, validateAgainstRuntime } from '../tools/index.ts'
 import type { RuntimeSpec } from '../tools/index.ts'
+import { bindRecipeValues } from './binding.ts'
 import { OutcomeScreen, OptionsScreen, ResultScreen } from './screens/index.ts'
 import type { ResultFinding } from './screens/index.ts'
 
@@ -79,7 +80,12 @@ function highValueGroups() {
   }))
 }
 
-function buildPlan(recipe: Recipe, quality: string, rawArgs: string): Plan {
+function buildPlan(
+  recipe: Recipe,
+  quality: string,
+  rawArgs: string,
+  sourceUrl: string,
+): { plan: Plan; bindingFindings: Finding[] } {
   const values: Record<string, string> = { shell: 'posix' }
   // Map quality to format if recipe uses format flag; keep simple.
   if (quality && quality !== 'best') {
@@ -91,10 +97,14 @@ function buildPlan(recipe: Recipe, quality: string, rawArgs: string): Plan {
     const mapped = qualityMap[quality]
     if (mapped) values.format = mapped
   }
-  const plan = planFromRecipe(recipe, values)
+  const basePlan = planFromRecipe(recipe, values)
+  const bound = bindRecipeValues({ ...recipe, args: basePlan.args }, { ...values, sourceUrl })
   const extra = parseRawArgs(rawArgs)
-  if (extra.length === 0) return plan
-  return { ...plan, args: [...plan.args, ...extra] }
+  const args = extra.length === 0 ? bound.args : [...bound.args, ...extra]
+  return {
+    plan: { ...basePlan, args },
+    bindingFindings: bound.findings,
+  }
 }
 
 /** Main TUI app. */
@@ -104,6 +114,7 @@ export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppP
   const [recipeId, setRecipeId] = useState<string>(HIGH_VALUE_GROUPS[0]?.ids[0] ?? '')
   const [quality, setQuality] = useState('best')
   const [rawArgs, setRawArgs] = useState('')
+  const [sourceUrl, setSourceUrl] = useState('')
   const [shell] = useState<'posix'>('posix')
   const [detection] = useState(() => {
     const detected = detectBinary(binary)
@@ -139,27 +150,34 @@ export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppP
 
   const selectedRecipe = useMemo(() => recipeFromId(recipeId), [recipeId])
 
-  const plan = useMemo(() => {
+  const built = useMemo(() => {
     if (!selectedRecipe) return null
-    return buildPlan(selectedRecipe, quality, rawArgs)
-  }, [selectedRecipe, quality, rawArgs])
+    return buildPlan(selectedRecipe, quality, rawArgs, sourceUrl)
+  }, [selectedRecipe, quality, rawArgs, sourceUrl])
+
+  const plan = built?.plan ?? null
 
   const command = useMemo(() => (plan ? planCommand(plan) : ''), [plan])
 
   const findings: ResultFinding[] = useMemo(() => {
-    if (!selectedRecipe || !spec) return []
-    // Validate the recipe extended with raw args as a synthetic recipe.
-    const extra = parseRawArgs(rawArgs)
-    const recipeForValidation: Recipe = {
-      ...selectedRecipe,
-      args: [...selectedRecipe.args, ...extra],
-    }
-    return validateAgainstRuntime(spec, recipeForValidation).map((f) => ({
+    if (!selectedRecipe) return []
+    const bindingFindings: ResultFinding[] = (built?.bindingFindings ?? []).map((f) => ({
       severity: f.severity,
       code: f.code,
       message: f.message,
     }))
-  }, [selectedRecipe, spec, rawArgs])
+    if (!spec) return bindingFindings
+    const recipeForValidation: Recipe = {
+      ...selectedRecipe,
+      args: built?.plan.args ?? selectedRecipe.args,
+    }
+    const validationFindings = validateAgainstRuntime(spec, recipeForValidation).map((f) => ({
+      severity: f.severity,
+      code: f.code,
+      message: f.message,
+    }))
+    return [...bindingFindings, ...validationFindings]
+  }, [selectedRecipe, spec, built])
 
   const doRun = useCallback(async () => {
     if (!runEnabled || !plan || running || ranRef.current) return
@@ -277,6 +295,8 @@ export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppP
         quality={quality}
         shell={shell}
         rawArgs={rawArgs}
+        sourceUrl={sourceUrl}
+        onSourceUrl={setSourceUrl}
         onChange={(value) => {
           setQuality(value.quality)
           setRawArgs(value.rawArgs)

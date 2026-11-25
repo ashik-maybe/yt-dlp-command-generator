@@ -98,6 +98,8 @@ describe('tui app', () => {
     // Move focus to raw args and type unknown flag.
     stdin.write('\u001B[B')
     await tick(50)
+    stdin.write('\u001B[B')
+    await tick(50)
     stdin.write('--bogus-flag')
     await tick(50)
 
