@@ -13,17 +13,19 @@ import type { RuntimeSpec } from '../tools/index.ts'
 import { bindRecipeValues } from './binding.ts'
 import { Chrome, HelpOverlay } from './components/index.ts'
 import { isNarrow } from './theme.ts'
-import { OutcomeScreen, OptionsScreen, ResultScreen } from './screens/index.ts'
+import { curatedTasks } from './tasks.ts'
+import { OutcomeScreen, OptionsScreen, ResultScreen, MoreTasksScreen } from './screens/index.ts'
 import {
   OPTIONS_HINTS,
   OPTIONS_HINTS_NARROW,
   OUTCOME_HINTS,
   RESULT_HINTS,
   RESULT_HINTS_NARROW,
+  MORE_HINTS,
 } from './screens/index.ts'
 import type { ResultFinding } from './screens/index.ts'
 
-type Screen = 'outcome' | 'options' | 'result'
+type Screen = 'outcome' | 'more' | 'options' | 'result'
 
 export interface AppProps {
   /** Enable command execution. */
@@ -67,33 +69,31 @@ function recipeFromId(id: string): Recipe | undefined {
   return recipes.find((r) => r.id === id) as Recipe | undefined
 }
 
-const HIGH_VALUE_GROUPS = [
-  {
-    label: 'Select',
-    ids: ['list-formats', 'match-filters', 'format-sort-small', 'use-extractors'],
-  },
-  {
-    label: 'Metadata',
-    ids: ['parse-metadata', 'split-chapters', 'force-keyframes-at-cuts', 'load-info-json'],
-  },
-  {
-    label: 'Network',
-    ids: ['impersonate', 'concurrent-fragments', 'throttled-rate', 'sleep-jitter'],
-  },
-  {
-    label: 'Output',
-    ids: ['template-playlist', 'template-chapter', 'stdout-pipe', 'exec-guarded'],
-  },
+const LEGACY_HIGH_VALUE_IDS = [
+  'list-formats',
+  'match-filters',
+  'format-sort-small',
+  'use-extractors',
+  'parse-metadata',
+  'split-chapters',
+  'force-keyframes-at-cuts',
+  'load-info-json',
+  'impersonate',
+  'concurrent-fragments',
+  'throttled-rate',
+  'sleep-jitter',
+  'template-playlist',
+  'template-chapter',
+  'stdout-pipe',
+  'exec-guarded',
 ] as const
 
-function highValueGroups() {
-  return HIGH_VALUE_GROUPS.map((group) => ({
-    label: group.label,
-    items: group.ids
-      .map((id) => recipes.find((recipe) => recipe.id === id))
-      .filter((recipe): recipe is NonNullable<typeof recipe> => recipe !== undefined)
-      .map((recipe) => ({ id: recipe.id, name: recipe.name })),
-  }))
+function legacyHiddenItems() {
+  const flat = LEGACY_HIGH_VALUE_IDS.map((id) => {
+    const recipe = recipeFromId(id)
+    return recipe ? { id: recipe.id, name: recipe.name } : null
+  }).filter((item): item is { id: string; name: string } => item !== null)
+  return [...flat.slice(7), ...flat.slice(0, 7)]
 }
 
 function getOutputValue(args: readonly Arg[]): string | null {
@@ -153,10 +153,11 @@ export function App({
   const narrow = isNarrow((stdout as unknown as { columns?: number }).columns)
   const [screen, setScreen] = useState<Screen>('outcome')
   const [helpOpen, setHelpOpen] = useState(false)
-  const [recipeId, setRecipeId] = useState<string>(HIGH_VALUE_GROUPS[0]?.ids[0] ?? '')
+  const [recipeId, setRecipeId] = useState<string>(curatedTasks[0]?.id ?? '')
   const [quality, setQuality] = useState('best')
   const [rawArgs, setRawArgs] = useState('')
   const [sourceUrl, setSourceUrl] = useState('')
+  const [advanced, setAdvanced] = useState(false)
   const [shell] = useState<'posix'>('posix')
   const [detection] = useState(() => {
     const detected = detectBinary(binary)
@@ -193,6 +194,11 @@ export function App({
   const stdoutBufferRef = useRef('')
 
   const selectedRecipe = useMemo(() => recipeFromId(recipeId), [recipeId])
+  const selectedTaskLabel = useMemo(() => {
+    const curated = curatedTasks.find((task) => task.id === recipeId)
+    if (curated) return curated.label
+    return selectedRecipe?.name ?? recipeId
+  }, [recipeId, selectedRecipe])
 
   const built = useMemo(() => {
     if (!selectedRecipe) return null
@@ -360,9 +366,19 @@ export function App({
       return
     }
     if (helpOpen) return
-    if (screen === 'options' && key.return) {
-      setScreen('result')
+    if (screen === 'outcome' && input === 'm') {
+      setScreen('more')
       return
+    }
+    if (screen === 'options') {
+      if (input === 'a' && !key.ctrl && !key.meta) {
+        // Let OptionsScreen handle 'a' for text fields; App toggles for quality focus
+        // by relying on OptionsScreen onToggleAdvanced. No-op here to avoid double toggle.
+      }
+      if (key.return) {
+        setScreen('result')
+        return
+      }
     }
     if (screen === 'result') {
       if (input === 'q') {
@@ -384,16 +400,25 @@ export function App({
     )
   }
 
-  const step = screen === 'outcome' ? 1 : screen === 'options' ? 2 : 3
-  const label = screen === 'outcome' ? 'Outcome' : screen === 'options' ? 'Options' : 'Result'
+  const step = screen === 'outcome' || screen === 'more' ? 1 : screen === 'options' ? 2 : 3
+  const label =
+    screen === 'outcome'
+      ? 'Outcome'
+      : screen === 'more'
+        ? 'More tasks'
+        : screen === 'options'
+          ? 'Options'
+          : 'Result'
   const statusValue =
     screen === 'outcome'
-      ? `${highValueGroups().reduce((sum, g) => sum + g.items.length, 0)} options`
-      : screen === 'options'
-        ? 'shell: posix'
-        : running
-          ? 'running'
-          : 'ready'
+      ? `${curatedTasks.length + 1} options`
+      : screen === 'more'
+        ? 'search all tasks'
+        : screen === 'options'
+          ? 'shell: posix'
+          : running
+            ? 'running'
+            : 'ready'
 
   const hints = helpOpen
     ? [
@@ -405,16 +430,26 @@ export function App({
         ? [
             { key: 'Up/Dn', action: 'move' },
             { key: 'Enter', action: 'select' },
+            { key: 'm', action: 'more' },
             { key: '?', action: 'help' },
           ]
-        : screen === 'options'
-          ? [...OPTIONS_HINTS_NARROW]
-          : [...RESULT_HINTS_NARROW]
+        : screen === 'more'
+          ? [
+              { key: 'Up/Dn', action: 'move' },
+              { key: 'Type', action: 'filter' },
+              { key: 'Enter', action: 'select' },
+              { key: 'Esc', action: 'back' },
+            ]
+          : screen === 'options'
+            ? [...OPTIONS_HINTS_NARROW]
+            : [...RESULT_HINTS_NARROW]
       : screen === 'outcome'
-        ? [...OUTCOME_HINTS]
-        : screen === 'options'
-          ? [...OPTIONS_HINTS]
-          : [...RESULT_HINTS]
+        ? [...OUTCOME_HINTS, { key: 'm', action: 'more tasks' }]
+        : screen === 'more'
+          ? [...MORE_HINTS]
+          : screen === 'options'
+            ? [...OPTIONS_HINTS]
+            : [...RESULT_HINTS]
 
   return (
     <Chrome
@@ -430,12 +465,29 @@ export function App({
         <HelpOverlay />
       ) : screen === 'outcome' ? (
         <OutcomeScreen
-          groups={highValueGroups()}
+          groups={[
+            {
+              label: 'Common tasks',
+              items: curatedTasks.map((t) => ({ id: t.id, name: t.label, hint: t.hint })),
+            },
+          ]}
+          hiddenItems={legacyHiddenItems()}
           selectedId={recipeId}
           onSelect={(id) => {
             setRecipeId(id)
             setScreen('options')
           }}
+          onMore={() => setScreen('more')}
+          showMore
+          embedded
+        />
+      ) : screen === 'more' ? (
+        <MoreTasksScreen
+          onSelect={(id) => {
+            setRecipeId(id)
+            setScreen('options')
+          }}
+          onBack={() => setScreen('outcome')}
           embedded
         />
       ) : screen === 'options' ? (
@@ -445,6 +497,8 @@ export function App({
           rawArgs={rawArgs}
           sourceUrl={sourceUrl}
           onSourceUrl={setSourceUrl}
+          advanced={advanced}
+          onToggleAdvanced={() => setAdvanced((v) => !v)}
           onChange={(value) => {
             setQuality(value.quality)
             setRawArgs(value.rawArgs)
@@ -457,6 +511,7 @@ export function App({
           command={command}
           findings={findings}
           version={`${version}${runEnabled ? ` | ${runStatus}` : ''}`}
+          taskLabel={selectedTaskLabel}
           running={running}
           progressPercent={runEnabled || runStatus !== 'ready' ? progressPercent : undefined}
           progressSpeed={runEnabled || runStatus !== 'ready' ? progressSpeed : undefined}

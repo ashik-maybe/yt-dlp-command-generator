@@ -53,6 +53,35 @@ jobs:
       - name: Regenerate spec
         run: node tools/spec-compiler/generate.mjs
 
+      - name: Update coverage counts
+        run: |
+          node --input-type=module - <<'NODE'
+          import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+          const ref = 'docs/REFERENCE.md'
+          if (!existsSync(ref)) {
+            console.log('docs/REFERENCE.md missing; skipping coverage update')
+            process.exit(0)
+          }
+          const options = JSON.parse(readFileSync('src/spec/options.json', 'utf8'))
+          const readmeFlags = JSON.parse(readFileSync('src/spec/readme-flags.json', 'utf8'))
+          const counts = {
+            'Options in the spec': options.options.length,
+            'Deprecated flags': options.deprecated.length,
+            'README-only flags': readmeFlags.flags.length,
+          }
+          let text = readFileSync(ref, 'utf8')
+          for (const [label, value] of Object.entries(counts)) {
+            const pattern = new RegExp(`^(\\|\\s*${label}\\s*\\|\\s*)\\d+(\\s*\\|)`, 'm')
+            if (!pattern.test(text)) {
+              console.log(`Row not found: ${label}`)
+              continue
+            }
+            text = text.replace(pattern, `$1${value}$2`)
+          }
+          writeFileSync(ref, text)
+          console.log('Updated coverage counts in docs/REFERENCE.md')
+          NODE
+
       - name: Run gate
         run: bun run ci
 

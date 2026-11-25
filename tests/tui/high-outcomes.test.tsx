@@ -1,89 +1,94 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render } from 'ink-testing-library'
 import { OutcomeScreen } from '../../src/tui/screens/OutcomeScreen.tsx'
+import { curatedTasks } from '../../src/tui/tasks.ts'
 
 const groups = [
   {
-    label: 'Select',
-    items: [
-      { id: 'list-formats', name: 'List formats' },
-      { id: 'match-filters', name: 'Match filters' },
-      { id: 'format-sort-small', name: 'Format sort by size' },
-      { id: 'use-extractors', name: 'Use extractors' },
-    ],
+    label: 'Common tasks',
+    items: curatedTasks.map((task) => ({ id: task.id, name: task.label, hint: task.hint })),
   },
-  {
-    label: 'Metadata',
-    items: [
-      { id: 'parse-metadata', name: 'Parse metadata' },
-      { id: 'split-chapters', name: 'Split chapters' },
-      { id: 'force-keyframes-at-cuts', name: 'Force keyframes at cuts' },
-      { id: 'load-info-json', name: 'Load info JSON' },
-    ],
-  },
-  {
-    label: 'Network',
-    items: [
-      { id: 'impersonate', name: 'Impersonate client' },
-      { id: 'concurrent-fragments', name: 'Concurrent fragments' },
-      { id: 'throttled-rate', name: 'Throttled rate' },
-      { id: 'sleep-jitter', name: 'Sleep jitter' },
-    ],
-  },
-  {
-    label: 'Output',
-    items: [
-      { id: 'template-playlist', name: 'Playlist output template' },
-      { id: 'template-chapter', name: 'Chapter output template' },
-      { id: 'stdout-pipe', name: 'Stdout pipe' },
-      { id: 'exec-guarded', name: 'Guarded exec' },
-    ],
-  },
-] as const
+]
 
 function tick(ms = 50): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-describe('high-value outcome screen', () => {
-  it('renders grouped headings', () => {
+describe('task-first outcome screen', () => {
+  it('renders common tasks with plain labels and hints', () => {
     const { lastFrame } = render(
-      <OutcomeScreen groups={groups} selectedId="list-formats" onSelect={() => {}} />,
+      <OutcomeScreen
+        groups={groups}
+        selectedId="best-video"
+        onSelect={() => {}}
+        showMore
+        onMore={() => {}}
+      />,
     )
 
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('Select')
-    expect(frame).toContain('Metadata')
-    expect(frame).toContain('Network')
-    expect(frame).toContain('Output')
-    expect(frame).toContain('16 options')
+    expect(frame).toContain('Common tasks')
+    expect(frame).toContain('Download video')
+    expect(frame).toContain('Audio only')
+    expect(frame).toContain('More tasks...')
+    expect(frame).not.toContain('16 options')
   })
 
   it('supports arrow navigation', async () => {
     const { lastFrame, stdin } = render(
-      <OutcomeScreen groups={groups} selectedId="list-formats" onSelect={() => {}} />,
+      <OutcomeScreen
+        groups={groups}
+        selectedId="best-video"
+        onSelect={() => {}}
+        showMore
+        onMore={() => {}}
+      />,
     )
 
     stdin.write('\u001B[B')
     await tick()
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('> 2. [ ] Match filters')
+    expect(frame).toContain('Audio only')
+    expect(frame).toContain('>')
   })
 
-  it('selects one high-value recipe', async () => {
+  it('selects a curated task', async () => {
     const onSelect = vi.fn()
     const { stdin } = render(
-      <OutcomeScreen groups={groups} selectedId="list-formats" onSelect={onSelect} />,
+      <OutcomeScreen
+        groups={groups}
+        selectedId="best-video"
+        onSelect={onSelect}
+        showMore
+        onMore={() => {}}
+      />,
     )
 
-    // eslint-disable-next-line no-await-in-loop
-    for (let i = 0; i < 8; i++) {
+    stdin.write('\u001B[B')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    expect(onSelect).toHaveBeenCalledWith('audio-mp3')
+  })
+
+  it('opens more tasks row', async () => {
+    const onMore = vi.fn()
+    const { stdin } = render(
+      <OutcomeScreen
+        groups={groups}
+        selectedId="best-video"
+        onSelect={() => {}}
+        showMore
+        onMore={onMore}
+      />,
+    )
+
+    for (let i = 0; i < 6; i++) {
       stdin.write('\u001B[B')
-      // eslint-disable-next-line no-await-in-loop
       await tick()
     }
     stdin.write('\r')
     await tick()
-    expect(onSelect).toHaveBeenCalledWith('impersonate')
+    expect(onMore).toHaveBeenCalled()
   })
 })

@@ -17,3 +17,9 @@ jobs:
           bun-version: 1.4.5
       - run: bun install --frozen-lockfile
       - run: bun run ci
+      - name: Package TUI
+        run: bash scripts/package-tui.sh
+      - name: Smoke test binary
+        run: |
+          ./dist/yt-dlp-tui-linux-x64 --version
+          ./dist/yt-dlp-tui-linux-x64 --help

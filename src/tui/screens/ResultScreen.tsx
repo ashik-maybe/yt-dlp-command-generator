@@ -19,6 +19,8 @@ export interface ResultScreenProps {
   findings: readonly ResultFinding[]
   /** Tool version label. */
   version: string
+  /** Plain task label. */
+  taskLabel?: string
   /** True while a run is active. */
   running: boolean
   /** Latest parsed progress percent. */
@@ -63,6 +65,7 @@ export function ResultScreen({
   command,
   findings,
   version,
+  taskLabel,
   running,
   progressPercent,
   progressSpeed,
@@ -86,6 +89,7 @@ export function ResultScreen({
   const body = (
     <Box flexDirection="column">
       <Box flexDirection="column" marginTop={embedded ? 0 : 1}>
+        {taskLabel ? <Text>Task: {taskLabel}</Text> : null}
         <Text>Version: {version}</Text>
         <Text>Command:</Text>
         <Text wrap="wrap">{command}</Text>
@@ -109,6 +113,7 @@ export function ResultScreen({
         </Box>
       ) : null}
       <Box flexDirection="column" marginTop={1}>
+        <Text>Checks:</Text>
         <Text>Findings:</Text>
         {findings.length === 0 ? (
           <Text> none</Text>
