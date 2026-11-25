@@ -12,6 +12,8 @@ for (const option of spec.options) {
 const problems = []
 if (spec.options.length <= 200) problems.push('option count must be above 200')
 if (spec.options.some((option) => !option.flag)) problems.push('every option needs a flag')
+if (!spec.options.some((option) => option.alias)) problems.push('option aliases missing')
+if (!spec.deprecated || spec.deprecated.length === 0) problems.push('deprecated entries missing')
 if (spec.provenance?.version !== '2026.11.23') problems.push('pinned version mismatch')
 if (spec.provenance?.helpSha256 !== createHash('sha256').update(help).digest('hex')) {
   problems.push('help cache sha256 mismatch')
@@ -20,7 +22,9 @@ if (new Set(spec.options.map((option) => option.flag)).size !== spec.options.len
   problems.push('duplicate flags')
 }
 
-console.log(`spec-check: ${spec.options.length} options, ${spec.deprecated.length} deprecated`)
+console.log(
+  `spec-check: ${spec.options.length} options, ${spec.deprecated?.length ?? 0} deprecated`,
+)
 for (const [section, count] of sections) console.log(`  ${section}: ${count}`)
 
 if (problems.length) {
