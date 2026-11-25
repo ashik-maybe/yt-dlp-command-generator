@@ -9,11 +9,12 @@ import {
   STATE_PREFIX,
   type ShareState,
 } from './core/router.ts'
-import { coverageNote, heroStrings, validatorWarnings } from './content/index.ts'
+import { heroStrings, validatorWarnings } from './content/index.ts'
 import { recipes } from './recipes/index.ts'
 import { spec } from './spec/index.ts'
 import { AdvancedDrawer } from './ui/advanced/index.ts'
 import { CalibrationPanel } from './ui/calibration/index.ts'
+import { CoveragePanel } from './ui/coverage/index.ts'
 import { HandoffPanel } from './ui/handoff/index.ts'
 import { FormatLadder } from './ui/moment/index.ts'
 import { OutcomeGrid } from './ui/outcomes/index.ts'
@@ -258,7 +259,7 @@ export default function App() {
       </section>
 
       <section id="coverage" className="section coverage" style={SCREEN_1}>
-        <p className="coverage-note">{coverageNote.text}</p>
+        <CoveragePanel />
       </section>
 
       <footer className="app-footer">
