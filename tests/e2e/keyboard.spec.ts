@@ -5,7 +5,7 @@ test.describe('keyboard flow', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    const outcome = page.getByRole('button', { name: /Video download/i }).first()
+    const outcome = page.getByRole('button', { name: /Download video/i }).first()
     await expect(outcome).toBeVisible()
 
     for (let i = 0; i < 40; i += 1) {

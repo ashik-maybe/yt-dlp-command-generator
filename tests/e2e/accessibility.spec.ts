@@ -15,7 +15,7 @@ test.describe('accessibility', () => {
     await page.goto('/')
     await page.waitForLoadState('networkidle')
 
-    const outcome = page.getByRole('button', { name: /Video download/i }).first()
+    const outcome = page.getByRole('button', { name: /Download video/i }).first()
     await expect(outcome).toBeVisible()
     await outcome.click()
 
