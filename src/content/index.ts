@@ -31,22 +31,22 @@ export const heroStrings: StringEntry[] = [
 
 /** Names of the outcomes the app offers. */
 export const outcomeStrings: StringEntry[] = [
-  e('outcomeDownloadVideo', 'label', 'Download video'),
-  e('outcomeExtractAudio', 'label', 'Extract audio'),
-  e('outcomeConvertFormat', 'label', 'Convert format'),
-  e('outcomeResumeDownload', 'label', 'Resume download'),
-  e('outcomeListFormats', 'label', 'List formats'),
-  e('outcomeCopyCommand', 'label', 'Copy command'),
-  e('chapters', 'label', 'Save chapters'),
-  e('thumbnails-embed', 'label', 'Embed thumbnail'),
-  e('subtitles-only', 'label', 'Subtitles only'),
-  e('playlist-reverse', 'label', 'Reverse playlist'),
-  e('archive-skip', 'label', 'Skip archived'),
-  e('format-sort', 'label', 'Sort formats'),
-  e('sponsorblock-all', 'label', 'Remove sponsor segments'),
-  e('metadata-only', 'label', 'Write metadata'),
-  e('geo-bypass', 'label', 'Bypass geography'),
-  e('sleep', 'label', 'Add delays'),
+  e('list-formats', 'label', 'List formats'),
+  e('match-filters', 'label', 'Filter matches'),
+  e('format-sort-small', 'label', 'Sort formats by size'),
+  e('use-extractors', 'label', 'Limit extractors'),
+  e('parse-metadata', 'label', 'Parse metadata'),
+  e('split-chapters', 'label', 'Split chapters'),
+  e('force-keyframes-at-cuts', 'label', 'Force keyframes at cuts'),
+  e('load-info-json', 'label', 'Load info JSON'),
+  e('impersonate', 'label', 'Impersonate client'),
+  e('concurrent-fragments', 'label', 'Download fragments concurrently'),
+  e('throttled-rate', 'label', 'Set throttled rate'),
+  e('sleep-jitter', 'label', 'Add sleep interval'),
+  e('template-playlist', 'label', 'Set playlist template'),
+  e('template-chapter', 'label', 'Set chapter template'),
+  e('stdout-pipe', 'label', 'Write to stdout'),
+  e('exec-guarded', 'label', 'Run command after move'),
 ]
 
 /** Labels for format quality. */
