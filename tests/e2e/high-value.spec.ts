@@ -2,7 +2,10 @@ import { expect, test } from '@playwright/test'
 
 test('selects a grouped high-value outcome and shows the expected flag', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: /List formats/i }).first().click()
+  await page
+    .getByRole('button', { name: /List formats/i })
+    .first()
+    .click()
 
   const command = page.locator('pre code').first()
   await expect(command).toBeVisible()
