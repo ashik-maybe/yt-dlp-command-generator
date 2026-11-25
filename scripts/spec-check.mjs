@@ -2,6 +2,9 @@ import { readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 
 const spec = JSON.parse(readFileSync(new URL('../src/spec/options.json', import.meta.url), 'utf8'))
+const readmeFlags = JSON.parse(
+  readFileSync(new URL('../src/spec/readme-flags.json', import.meta.url), 'utf8'),
+)
 const help = readFileSync(new URL('../.cache/yt-dlp-help.txt', import.meta.url), 'utf8')
 
 const sections = new Map()
@@ -21,9 +24,14 @@ if (spec.provenance?.helpSha256 !== createHash('sha256').update(help).digest('he
 if (new Set(spec.options.map((option) => option.flag)).size !== spec.options.length) {
   problems.push('duplicate flags')
 }
+if (!Array.isArray(readmeFlags.flags)) problems.push('readme flags array missing')
+if (readmeFlags.provenance?.version !== '2026.11.23') problems.push('readme version mismatch')
+if (!/^[a-f0-9]{64}$/.test(readmeFlags.provenance?.readmeSha256 ?? '')) {
+  problems.push('readme sha256 missing')
+}
 
 console.log(
-  `spec-check: ${spec.options.length} options, ${spec.deprecated?.length ?? 0} deprecated`,
+  `spec-check: ${spec.options.length} options, ${spec.deprecated?.length ?? 0} deprecated, ${readmeFlags.flags.length} README-only`,
 )
 for (const [section, count] of sections) console.log(`  ${section}: ${count}`)
 
