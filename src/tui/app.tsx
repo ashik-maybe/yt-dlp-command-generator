@@ -1,3 +1,6 @@
+import { existsSync, statSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { Box, Text, useApp, useInput } from 'ink'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { planFromRecipe, render } from '../core/index.ts'
@@ -20,6 +23,8 @@ export interface AppProps {
   yes?: boolean
   /** Binary name or path for detection. */
   binary?: string
+  /** Allow overwriting an existing output file. */
+  force?: boolean
 }
 
 function parseRawArgs(raw: string): Arg[] {
@@ -80,12 +85,28 @@ function highValueGroups() {
   }))
 }
 
+function getOutputValue(args: readonly Arg[]): string | null {
+  for (const arg of args) {
+    if ((arg.flag === 'o' || arg.flag === 'output') && arg.value) return arg.value
+  }
+  return null
+}
+
+function withInferredOutput(args: Arg[]): Arg[] {
+  if (getOutputValue(args) !== null) return args
+  const tempPath = join(
+    tmpdir(),
+    `yt-dlp-tui-${Date.now()}-${Math.random().toString(16).slice(2)}.out`,
+  )
+  return [...args, { flag: 'output', value: tempPath }]
+}
+
 function buildPlan(
   recipe: Recipe,
   quality: string,
   rawArgs: string,
   sourceUrl: string,
-): { plan: Plan; bindingFindings: Finding[] } {
+): { plan: Plan; bindingFindings: Finding[]; outputPath: string | null } {
   const values: Record<string, string> = { shell: 'posix' }
   // Map quality to format if recipe uses format flag; keep simple.
   if (quality && quality !== 'best') {
@@ -100,15 +121,22 @@ function buildPlan(
   const basePlan = planFromRecipe(recipe, values)
   const bound = bindRecipeValues({ ...recipe, args: basePlan.args }, { ...values, sourceUrl })
   const extra = parseRawArgs(rawArgs)
-  const args = extra.length === 0 ? bound.args : [...bound.args, ...extra]
+  const merged = extra.length === 0 ? bound.args : [...bound.args, ...extra]
+  const args = withInferredOutput(merged)
   return {
     plan: { ...basePlan, args },
     bindingFindings: bound.findings,
+    outputPath: getOutputValue(args),
   }
 }
 
 /** Main TUI app. */
-export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppProps) {
+export function App({
+  runEnabled = false,
+  yes = false,
+  binary = 'yt-dlp',
+  force = false,
+}: AppProps) {
   const { exit } = useApp()
   const [screen, setScreen] = useState<Screen>('outcome')
   const [recipeId, setRecipeId] = useState<string>(HIGH_VALUE_GROUPS[0]?.ids[0] ?? '')
@@ -144,6 +172,7 @@ export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppP
   const [progressPercent, setProgressPercent] = useState<number | null>(null)
   const [progressSpeed, setProgressSpeed] = useState<string | null>(null)
   const [rawLog, setRawLog] = useState('')
+  const [verification, setVerification] = useState<'verified' | 'failed' | 'blocked' | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const ranRef = useRef(false)
   const stdoutBufferRef = useRef('')
@@ -181,6 +210,25 @@ export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppP
 
   const doRun = useCallback(async () => {
     if (!runEnabled || !plan || running || ranRef.current) return
+
+    const blockingFindings = findings.filter(
+      (f) => f.code === 'UNBOUND_PLACEHOLDER' || f.severity === 'error',
+    )
+    if (blockingFindings.length > 0) {
+      ranRef.current = true
+      setRunStatus('blocked')
+      setVerification('blocked')
+      return
+    }
+
+    const outputPath = built?.outputPath ?? null
+    if (outputPath && outputPath !== '-' && existsSync(outputPath) && !force) {
+      ranRef.current = true
+      setRunStatus('blocked')
+      setVerification('blocked')
+      return
+    }
+
     ranRef.current = true
     const detected = detectBinary(binary)
     if (!detected.ok) {
@@ -191,6 +239,7 @@ export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppP
     abortRef.current = controller
     setRunning(true)
     setRunStatus('running')
+    setVerification(null)
     setProgressPercent(null)
     setProgressSpeed(null)
     setRawLog('')
@@ -228,14 +277,30 @@ export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppP
         onLine(tail)
         stdoutBufferRef.current = ''
       }
-      setRunStatus(result.exitCode === 0 ? 'exit 0' : `exit ${result.exitCode ?? 1}`)
+      if (result.exitCode === 0) {
+        setRunStatus('exit 0')
+        if (outputPath && outputPath !== '-') {
+          try {
+            const ok = existsSync(outputPath) && statSync(outputPath).size > 0
+            setVerification(ok ? 'verified' : 'failed')
+          } catch {
+            setVerification('failed')
+          }
+        } else {
+          setVerification('verified')
+        }
+      } else {
+        setRunStatus(`exit ${result.exitCode ?? 1}`)
+        setVerification('failed')
+      }
     } catch {
       setRunStatus('failed')
+      setVerification('failed')
     } finally {
       setRunning(false)
       abortRef.current = null
     }
-  }, [runEnabled, plan, running, binary])
+  }, [runEnabled, plan, running, binary, findings, built, force])
 
   useEffect(() => {
     if (screen !== 'result') return
@@ -315,6 +380,7 @@ export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppP
       progressPercent={showRunInfo ? progressPercent : undefined}
       progressSpeed={showRunInfo ? progressSpeed : undefined}
       rawLog={showRunInfo ? rawLog : undefined}
+      verification={showRunInfo ? verification : undefined}
     />
   )
 }

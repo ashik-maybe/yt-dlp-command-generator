@@ -11,6 +11,7 @@ const CANNED_HELP = `Usage: yt-dlp [OPTIONS] URL [URL...]
 General Options:
     -h, --help                      Print this help text and exit
     --version                       Print program version and exit
+    --list-formats                  List available formats
 
 Download Options:
     -f, --format FORMAT             Video format code
