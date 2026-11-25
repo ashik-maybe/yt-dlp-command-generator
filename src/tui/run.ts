@@ -1,3 +1,6 @@
+import { render } from 'ink'
+import React from 'react'
+import { App } from './app.tsx'
 import type { TuiArgs } from './types.ts'
 
 /** Parse command-line arguments. */
@@ -26,7 +29,6 @@ export function run(args: string[]): { code: number; output: string } {
     return { code: 0, output }
   }
 
-  const output = 'yt-dlp-tui: placeholder'
-  console.log(output)
-  return { code: 0, output }
+  render(React.createElement(App, { runEnabled: parsed.run, yes: parsed.yes }))
+  return { code: 0, output: '' }
 }
