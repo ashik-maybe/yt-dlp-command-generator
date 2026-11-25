@@ -20,18 +20,18 @@
         "value": "chapter:%(section_number)02d - %(section_title)s.%(ext)s"
       }
     ],
-    "confidence": "verified"
+    "confidence": "unverified"
   },
   {
     "id": "stdout-pipe",
     "name": "Stdout pipe",
     "args": [{ "flag": "output", "value": "-" }],
-    "confidence": "verified"
+    "confidence": "unverified"
   },
   {
     "id": "exec-guarded",
     "name": "Guarded exec",
     "args": [{ "flag": "exec", "value": "after_move:echo %(filepath)q" }],
-    "confidence": "verified"
+    "confidence": "unverified"
   }
 ]

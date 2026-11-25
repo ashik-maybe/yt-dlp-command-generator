@@ -43,4 +43,9 @@ describe('high-d recipes conformance', () => {
     const ids = recipes.map((recipe) => recipe.id)
     expect(new Set(ids).size).toBe(ids.length)
   })
+
+  it('marks the exec recipe unverified', () => {
+    const exec = recipes.find((recipe) => recipe.id === 'exec-guarded')
+    expect(exec?.confidence).toBe('unverified')
+  })
 })
