@@ -25,6 +25,9 @@ interface AdvancedOption extends OptionSpec {
 /** Options of the generated spec, as the drawer renders them. */
 const OPTIONS = spec.options as AdvancedOption[]
 
+/** Official yt-dlp README, linked from the Doc entries. */
+const YTDLP_DOCS = 'https://github.com/yt-dlp/yt-dlp/blob/master/README.md'
+
 export interface AdvancedDrawerProps {
   /** Extra controls rendered in the drawer. */
   children?: ReactNode
@@ -91,7 +94,11 @@ export function AdvancedDrawer({ children, open, onOpenChange }: AdvancedDrawerP
                   <span className="advanced-metavar">{option.metavar ?? ''}</span>
                   <span className="advanced-section">{option.section ?? ''}</span>
                   {option.anchor && (
-                    <a className="advanced-doc" href={`#${option.anchor}`}>
+                    <a
+                      className="advanced-doc"
+                      href={`${YTDLP_DOCS}#${option.anchor}`}
+                      style={{ minHeight: 44 }}
+                    >
                       Doc
                     </a>
                   )}

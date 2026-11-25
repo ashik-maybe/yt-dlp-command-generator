@@ -8,7 +8,7 @@ export function parseHash(hash: string): Route {
   if (screen === 'recipes' || screen === 'generate') {
     return { screen, ...(recipeId ? { recipeId } : {}) }
   }
-  return { screen: 'home', ...(recipeId ? { recipeId, screen: 'generate' as const } : {}) }
+  return { screen: 'home', ...(recipeId ? { recipeId } : {}) }
 }
 
 /** Write a shareable state to the URL hash. */
