@@ -197,7 +197,7 @@ export default function App() {
   } as const
 
   return (
-    <main className="app-shell">
+    <main id="main" className="app-shell">
       <header className="app-header">
         <nav className="app-nav">
           {NAV_LINKS.map((link) => (
@@ -243,7 +243,7 @@ export default function App() {
           </h2>
         </div>
         {findings.length > 0 && (
-          <div className="stack">
+          <div className="stack" role="alert">
             {findings.map((finding, index) => (
               <Callout
                 key={`${finding.code}-${index}`}
