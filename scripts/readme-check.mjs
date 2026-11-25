@@ -17,7 +17,8 @@ const required = [
   'raw arguments unverified',
   'bun run ci',
   'bun run tui:test',
-  'bunx playwright test',
+  'bun run tui:build',
+  'bash scripts/package-tui.sh',
   'bun run spec:check',
 ]
 

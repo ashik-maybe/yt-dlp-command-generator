@@ -2,6 +2,7 @@ import { Box, Text, useInput } from 'ink'
 import { useState } from 'react'
 import { KeyHint } from '../components/KeyHint.tsx'
 import { StatusBar } from '../components/StatusBar.tsx'
+import { theme } from '../theme.ts'
 
 export const QUALITY_OPTIONS = ['best', 'good', 'medium', 'low'] as const
 
@@ -29,11 +30,28 @@ export interface OptionsScreenProps {
   onSourceUrl: (value: string) => void
   /** Called when any option changes. */
   onChange: (value: OptionsScreenValue) => void
+  /** Hide internal chrome when wrapped by App. */
+  embedded?: boolean
+  /** Shorten hints for narrow terminals. */
+  narrow?: boolean
 }
 
 type FocusField = 'quality' | 'sourceUrl' | 'rawArgs'
 
 const FOCUS_ORDER: FocusField[] = ['quality', 'sourceUrl', 'rawArgs']
+
+export const OPTIONS_HINTS = [
+  { key: 'Up/Down', action: 'focus' },
+  { key: 'Left/Right', action: 'quality' },
+  { key: 'Type', action: 'value' },
+  { key: '?', action: 'help' },
+] as const
+
+export const OPTIONS_HINTS_NARROW = [
+  { key: 'Up/Dn', action: 'focus' },
+  { key: 'L/R', action: 'quality' },
+  { key: '?', action: 'help' },
+] as const
 
 /** Screen for choosing command options. */
 export function OptionsScreen({
@@ -43,6 +61,8 @@ export function OptionsScreen({
   sourceUrl,
   onSourceUrl,
   onChange,
+  embedded = false,
+  narrow = false,
 }: OptionsScreenProps) {
   const [focus, setFocus] = useState<FocusField>('quality')
 
@@ -96,31 +116,36 @@ export function OptionsScreen({
   const qualityMarker = focus === 'quality' ? '>' : ' '
   const sourceMarker = focus === 'sourceUrl' ? '>' : ' '
   const rawArgsMarker = focus === 'rawArgs' ? '>' : ' '
+  const show = (value: string) => (value.length > 0 ? value : '-')
+  const hints = narrow ? [...OPTIONS_HINTS_NARROW] : [...OPTIONS_HINTS]
+
+  const body = (
+    <Box flexDirection="column" marginTop={embedded ? 0 : 1}>
+      <Text color={focus === 'quality' ? theme.accent : undefined}>
+        {qualityMarker} Quality: {show(quality)}
+      </Text>
+      <Text color={theme.muted}> Hint: use Left/Right to change quality</Text>
+      <Text color={theme.muted}> Choices: {QUALITY_OPTIONS.join(' | ')}</Text>
+      <Text color={focus === 'sourceUrl' ? theme.accent : undefined}>
+        {sourceMarker} Source URL: {show(sourceUrl)}
+      </Text>
+      <Text color={theme.muted}> Hint: type a source URL</Text>
+      <Text color={focus === 'rawArgs' ? theme.accent : undefined}>
+        {rawArgsMarker} Raw args: {show(rawArgs)}
+      </Text>
+      <Text color={theme.muted}> Hint: type extra arguments</Text>
+      <Text> Shell: {shell}</Text>
+    </Box>
+  )
+
+  if (embedded) return body
 
   return (
     <Box flexDirection="column">
       <StatusBar label="Options" value="shell: posix" />
-      <Box flexDirection="column" marginTop={1}>
-        <Text>
-          {qualityMarker} Quality: {quality}
-        </Text>
-        <Text> Choices: {QUALITY_OPTIONS.join(' | ')}</Text>
-        <Text>
-          {sourceMarker} Source URL: {sourceUrl}
-        </Text>
-        <Text>
-          {rawArgsMarker} Raw args: {rawArgs}
-        </Text>
-        <Text> Shell: {shell}</Text>
-      </Box>
+      {body}
       <Box marginTop={1}>
-        <KeyHint
-          hints={[
-            { key: 'Up/Down', action: 'focus' },
-            { key: 'Left/Right', action: 'quality' },
-            { key: 'Type', action: 'value' },
-          ]}
-        />
+        <KeyHint hints={hints} />
       </Box>
     </Box>
   )

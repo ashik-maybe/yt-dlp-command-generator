@@ -31,7 +31,6 @@ tools/bin/*.zip
 
 # Test artifacts
 test-results/
-playwright-report/
 
 # Cached upstream text
 .cache/*.md

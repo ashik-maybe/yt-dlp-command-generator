@@ -1,44 +1,18 @@
 # yt-dlp wrapper
 
-The app builds `yt-dlp` commands from guided inputs.
+The TUI builds `yt-dlp` commands from guided inputs.
 It helps people who do not want to memorize flags.
-Users paste a URL and choose an outcome.
-The app shows the command and validation messages.
+Users enter a Source URL and choose an outcome.
+The TUI shows the command and validation messages.
 
-The browser never runs a command.
-Generated commands stay on the local machine.
-The app does not upload data.
-The app does not download files.
-
-## Web app
-
-Install dependencies with `bun install`.
-Start the dev server with `bun run dev`.
-Paste a source URL into the Source URL field.
-Pick a quality on the format ladder.
-Pick an outcome in the Outcomes section.
-Read the command in the receipt.
-Copy the command.
-Run the command on your own machine.
-
-The web app only generates text.
-It never executes `yt-dlp`.
-It never starts a download.
-Advanced options accept raw arguments.
-The UI marks raw arguments unverified in the web app.
-The app does not check raw arguments against the spec.
-
-The web app has five sections:
-
-- Builder: source URL and quality.
-- Validation: messages from the validator.
-- Outcomes: outcome buttons and the command receipt.
-- Handoff: install and paste instructions.
-- Coverage: spec counts.
+The TUI generates commands on the local machine.
+It does not upload data.
+It does not download files in default mode.
 
 ## Terminal UI
 
 The TUI runs on Linux only.
+Install dependencies with `bun install`.
 Start it with `bun run tui`.
 The default mode never executes a command.
 Use `--run` to allow execution.
@@ -120,12 +94,15 @@ It caches the compiled spec in the system temporary directory.
 When detection fails, the TUI shows a message.
 When no binary exists, the TUI reports a missing binary.
 
-### TUI commands
+## Commands
 
 - `bun run tui` starts the TUI without execution.
 - `bun run tui --run` allows execution with confirmation.
 - `bun run tui --run --yes` executes without confirmation.
 - `bun run tui:test` runs the TUI unit tests.
+- `bun run tui:build` builds the Linux x64 binary.
+- `bun run tui:arm` builds the Linux arm64 binary.
+- `bash scripts/package-tui.sh` packages TUI binaries.
 
 ## Coverage
 
@@ -321,11 +298,9 @@ Review it before use.
 ## Raw arguments
 
 Advanced mode accepts raw arguments.
-The web UI marks raw arguments unverified.
-The web app does not check raw arguments against the spec.
 Paste raw arguments into the Raw args field.
-The TUI accepts raw arguments on the options screen.
 The TUI validates raw arguments against the runtime spec.
+Raw arguments remain raw arguments unverified until runtime validation.
 
 ## Confidence labels
 
@@ -345,15 +320,16 @@ Three recipes use the `unverified` label:
 
 - `bun run ci` runs the full gate.
 - `bun run tui:test` runs the TUI unit tests.
-- `bunx playwright test` runs the browser tests.
+- `bun run tui:build` builds the Linux x64 binary.
+- `bash scripts/package-tui.sh` packages the Linux binaries.
 
 The full gate runs lint, format check, and typecheck.
-It also runs design lint, spec check, readme check, unit tests, and build.
+It also runs design lint, spec check, readme check, unit tests, and tui:test.
 
 ## Known limits
 
-The browser never executes a command.
-The app never contacts the network.
+The TUI never executes a command in default mode.
+The app does not contact the network.
 The spec reflects one pinned help snapshot.
 Future `yt-dlp` flags may be missing.
 Raw arguments have no guarantee of correctness.

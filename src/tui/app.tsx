@@ -1,7 +1,7 @@
 import { existsSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { Box, Text, useApp, useInput } from 'ink'
+import { Box, Text, useApp, useInput, useStdout } from 'ink'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { planFromRecipe, render } from '../core/index.ts'
 import type { Arg, Finding, Plan, Recipe } from '../core/types.ts'
@@ -11,7 +11,16 @@ import { runProcess } from '../runner/index.ts'
 import { compileRuntimeSpec, detectBinary, validateAgainstRuntime } from '../tools/index.ts'
 import type { RuntimeSpec } from '../tools/index.ts'
 import { bindRecipeValues } from './binding.ts'
+import { Chrome, HelpOverlay } from './components/index.ts'
+import { isNarrow } from './theme.ts'
 import { OutcomeScreen, OptionsScreen, ResultScreen } from './screens/index.ts'
+import {
+  OPTIONS_HINTS,
+  OPTIONS_HINTS_NARROW,
+  OUTCOME_HINTS,
+  RESULT_HINTS,
+  RESULT_HINTS_NARROW,
+} from './screens/index.ts'
 import type { ResultFinding } from './screens/index.ts'
 
 type Screen = 'outcome' | 'options' | 'result'
@@ -110,7 +119,6 @@ function buildPlan(
   sourceUrl: string,
 ): { plan: Plan; bindingFindings: Finding[]; outputPath: string | null } {
   const values: Record<string, string> = { shell: 'posix' }
-  // Map quality to format if recipe uses format flag; keep simple.
   if (quality && quality !== 'best') {
     const qualityMap: Record<string, string> = {
       good: 'bv[height<=1080]+ba/best',
@@ -141,7 +149,10 @@ export function App({
   unsafe = false,
 }: AppProps) {
   const { exit } = useApp()
+  const { stdout } = useStdout()
+  const narrow = isNarrow((stdout as unknown as { columns?: number }).columns)
   const [screen, setScreen] = useState<Screen>('outcome')
+  const [helpOpen, setHelpOpen] = useState(false)
   const [recipeId, setRecipeId] = useState<string>(HIGH_VALUE_GROUPS[0]?.ids[0] ?? '')
   const [quality, setQuality] = useState('best')
   const [rawArgs, setRawArgs] = useState('')
@@ -189,7 +200,6 @@ export function App({
   }, [selectedRecipe, quality, rawArgs, sourceUrl])
 
   const plan = built?.plan ?? null
-
   const command = useMemo(() => (plan ? planCommand(plan) : ''), [plan])
 
   const findings: ResultFinding[] = useMemo(() => {
@@ -341,6 +351,15 @@ export function App({
       exit()
       return
     }
+    if (input === '?') {
+      setHelpOpen((open) => !open)
+      return
+    }
+    if (key.escape && helpOpen) {
+      setHelpOpen(false)
+      return
+    }
+    if (helpOpen) return
     if (screen === 'options' && key.return) {
       setScreen('result')
       return
@@ -365,48 +384,90 @@ export function App({
     )
   }
 
-  if (screen === 'outcome') {
-    return (
-      <OutcomeScreen
-        groups={highValueGroups()}
-        selectedId={recipeId}
-        onSelect={(id) => {
-          setRecipeId(id)
-          setScreen('options')
-        }}
-      />
-    )
-  }
+  const step = screen === 'outcome' ? 1 : screen === 'options' ? 2 : 3
+  const label = screen === 'outcome' ? 'Outcome' : screen === 'options' ? 'Options' : 'Result'
+  const statusValue =
+    screen === 'outcome'
+      ? `${highValueGroups().reduce((sum, g) => sum + g.items.length, 0)} options`
+      : screen === 'options'
+        ? 'shell: posix'
+        : running
+          ? 'running'
+          : 'ready'
 
-  if (screen === 'options') {
-    return (
-      <OptionsScreen
-        quality={quality}
-        shell={shell}
-        rawArgs={rawArgs}
-        sourceUrl={sourceUrl}
-        onSourceUrl={setSourceUrl}
-        onChange={(value) => {
-          setQuality(value.quality)
-          setRawArgs(value.rawArgs)
-        }}
-      />
-    )
-  }
+  const hints = helpOpen
+    ? [
+        { key: '?', action: 'close' },
+        { key: 'Esc', action: 'close' },
+      ]
+    : narrow
+      ? screen === 'outcome'
+        ? [
+            { key: 'Up/Dn', action: 'move' },
+            { key: 'Enter', action: 'select' },
+            { key: '?', action: 'help' },
+          ]
+        : screen === 'options'
+          ? [...OPTIONS_HINTS_NARROW]
+          : [...RESULT_HINTS_NARROW]
+      : screen === 'outcome'
+        ? [...OUTCOME_HINTS]
+        : screen === 'options'
+          ? [...OPTIONS_HINTS]
+          : [...RESULT_HINTS]
 
-  const showRunInfo = runEnabled || runStatus !== 'ready'
   return (
-    <ResultScreen
-      command={command}
-      findings={findings}
-      version={`${version}${runEnabled ? ` | ${runStatus}` : ''}`}
-      running={running}
-      progressPercent={showRunInfo ? progressPercent : undefined}
-      progressSpeed={showRunInfo ? progressSpeed : undefined}
-      rawLog={showRunInfo ? rawLog : undefined}
-      verification={showRunInfo ? verification : undefined}
-      blockedReason={showRunInfo ? blockedReason : undefined}
-    />
+    <Chrome
+      appName="yt-dlp wrapper"
+      version={version}
+      step={step}
+      totalSteps={3}
+      label={label}
+      value={statusValue}
+      hints={hints}
+    >
+      {helpOpen ? (
+        <HelpOverlay />
+      ) : screen === 'outcome' ? (
+        <OutcomeScreen
+          groups={highValueGroups()}
+          selectedId={recipeId}
+          onSelect={(id) => {
+            setRecipeId(id)
+            setScreen('options')
+          }}
+          embedded
+        />
+      ) : screen === 'options' ? (
+        <OptionsScreen
+          quality={quality}
+          shell={shell}
+          rawArgs={rawArgs}
+          sourceUrl={sourceUrl}
+          onSourceUrl={setSourceUrl}
+          onChange={(value) => {
+            setQuality(value.quality)
+            setRawArgs(value.rawArgs)
+          }}
+          embedded
+          narrow={narrow}
+        />
+      ) : (
+        <ResultScreen
+          command={command}
+          findings={findings}
+          version={`${version}${runEnabled ? ` | ${runStatus}` : ''}`}
+          running={running}
+          progressPercent={runEnabled || runStatus !== 'ready' ? progressPercent : undefined}
+          progressSpeed={runEnabled || runStatus !== 'ready' ? progressSpeed : undefined}
+          rawLog={runEnabled || runStatus !== 'ready' ? (narrow ? undefined : rawLog) : undefined}
+          verification={runEnabled || runStatus !== 'ready' ? verification : undefined}
+          blockedReason={runEnabled || runStatus !== 'ready' ? blockedReason : undefined}
+          embedded
+          narrow={narrow}
+        />
+      )}
+    </Chrome>
   )
 }
 

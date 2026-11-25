@@ -2,6 +2,7 @@ import { Box, Text, useInput } from 'ink'
 import { useMemo, useRef, useState } from 'react'
 import { KeyHint } from '../components/KeyHint.tsx'
 import { StatusBar } from '../components/StatusBar.tsx'
+import { theme } from '../theme.ts'
 
 export interface OutcomeItem {
   /** Stable outcome id. */
@@ -26,14 +27,28 @@ export interface OutcomeScreenProps {
   selectedId: string
   /** Called when the user selects an outcome. */
   onSelect: (id: string) => void
+  /** Hide internal chrome when wrapped by App. */
+  embedded?: boolean
 }
+
+export const OUTCOME_HINTS = [
+  { key: 'Up/Down', action: 'move' },
+  { key: 'Enter', action: 'select' },
+  { key: '?', action: 'help' },
+] as const
 
 function flattenGroups(groups: readonly OutcomeGroup[]): OutcomeItem[] {
   return groups.flatMap((group) => [...group.items])
 }
 
 /** Screen for choosing an outcome. */
-export function OutcomeScreen({ outcomes, groups, selectedId, onSelect }: OutcomeScreenProps) {
+export function OutcomeScreen({
+  outcomes,
+  groups,
+  selectedId,
+  onSelect,
+  embedded = false,
+}: OutcomeScreenProps) {
   const items = useMemo(
     () => (groups ? flattenGroups(groups) : [...(outcomes ?? [])]),
     [groups, outcomes],
@@ -63,48 +78,51 @@ export function OutcomeScreen({ outcomes, groups, selectedId, onSelect }: Outcom
     }
   })
 
+  const body = (
+    <Box flexDirection="column" marginTop={embedded ? 0 : 1}>
+      {groups
+        ? groups.map((group, groupIndex) => {
+            const start = groups
+              .slice(0, groupIndex)
+              .reduce((sum, current) => sum + current.items.length, 0)
+            return (
+              <Box key={group.label} flexDirection="column" marginBottom={1}>
+                <Text color={theme.muted}>{group.label}</Text>
+                {group.items.map((outcome, outcomeIndex) => {
+                  const itemIndex = start + outcomeIndex
+                  const cursor = itemIndex === index ? '>' : ' '
+                  const selected = outcome.id === selectedId ? '*' : ' '
+                  const active = itemIndex === index
+                  return (
+                    <Text key={outcome.id} color={active ? theme.accent : undefined}>
+                      {cursor} {itemIndex + 1}. [{selected}] {outcome.name}
+                    </Text>
+                  )
+                })}
+              </Box>
+            )
+          })
+        : items.map((outcome, itemIndex) => {
+            const cursor = itemIndex === index ? '>' : ' '
+            const selected = outcome.id === selectedId ? '*' : ' '
+            const active = itemIndex === index
+            return (
+              <Text key={outcome.id} color={active ? theme.accent : undefined}>
+                {cursor} {itemIndex + 1}. [{selected}] {outcome.name}
+              </Text>
+            )
+          })}
+    </Box>
+  )
+
+  if (embedded) return body
+
   return (
     <Box flexDirection="column">
       <StatusBar label="Outcome" value={`${items.length} options`} />
-      <Box flexDirection="column" marginTop={1}>
-        {groups
-          ? groups.map((group, groupIndex) => {
-              const start = groups
-                .slice(0, groupIndex)
-                .reduce((sum, current) => sum + current.items.length, 0)
-              return (
-                <Box key={group.label} flexDirection="column" marginBottom={1}>
-                  <Text>{group.label}</Text>
-                  {group.items.map((outcome, outcomeIndex) => {
-                    const itemIndex = start + outcomeIndex
-                    const cursor = itemIndex === index ? '>' : ' '
-                    const selected = outcome.id === selectedId ? '*' : ' '
-                    return (
-                      <Text key={outcome.id}>
-                        {cursor} {itemIndex + 1}. [{selected}] {outcome.name}
-                      </Text>
-                    )
-                  })}
-                </Box>
-              )
-            })
-          : items.map((outcome, itemIndex) => {
-              const cursor = itemIndex === index ? '>' : ' '
-              const selected = outcome.id === selectedId ? '*' : ' '
-              return (
-                <Text key={outcome.id}>
-                  {cursor} {itemIndex + 1}. [{selected}] {outcome.name}
-                </Text>
-              )
-            })}
-      </Box>
+      {body}
       <Box marginTop={1}>
-        <KeyHint
-          hints={[
-            { key: 'Up/Down', action: 'move' },
-            { key: 'Enter', action: 'select' },
-          ]}
-        />
+        <KeyHint hints={[...OUTCOME_HINTS]} />
       </Box>
     </Box>
   )
