@@ -116,7 +116,7 @@ export default function App() {
   useEffect(() => {
     const next = buildHash(state)
     if (window.location.hash !== next) {
-      window.location.hash = next
+      history.replaceState(null, '', next)
     }
   }, [state])
 
@@ -126,6 +126,20 @@ export default function App() {
     }
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
+  }, [])
+
+  useEffect(() => {
+    const onPopState = () => {
+      const next = parseHash(window.location.hash)
+      setState((current) => ({
+        ...current,
+        recipeId: next.recipeId,
+        shell: next.shell,
+        quality: next.quality,
+      }))
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
   const recipe = useMemo(
