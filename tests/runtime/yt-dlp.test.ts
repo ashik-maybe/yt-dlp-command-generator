@@ -91,5 +91,5 @@ describe.skipIf(!hasBin)('pinned yt-dlp runtime', () => {
     ])
     expect(result.code).toBe(0)
     expect(result.stdout).toContain('Available formats')
-  })
+  }, 30_000)
 })
