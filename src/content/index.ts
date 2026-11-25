@@ -156,6 +156,40 @@ export const confidenceLabels: StringEntry[] = [
   e('confidenceUnverified', 'label', 'unverified'),
 ]
 
+export interface RawArgSnippet {
+  /** Stable key of the snippet. */
+  id: string
+  /** Short label shown to users. */
+  label: string
+  /** Exact flag string to paste as a raw argument. */
+  flag: string
+  /** Optional warning shown with the snippet. */
+  warning?: string
+}
+
+/** Raw-argument snippets for high-value advanced cases. */
+export const rawArgSnippets: RawArgSnippet[] = [
+  { id: 'raw-match-filters', label: 'Match filters (regex)', flag: '--match-filters "!is_live"' },
+  { id: 'raw-format-sort', label: 'Format sort', flag: '--format-sort "+size,+br,+res,+fps"' },
+  { id: 'raw-parse-metadata', label: 'Parse metadata', flag: '--parse-metadata "<FROM>:<TO>"' },
+  {
+    id: 'raw-extractor-args',
+    label: 'Extractor args',
+    flag: '--extractor-args "<IE_KEY>:<ARGS>"',
+  },
+  {
+    id: 'raw-exec',
+    label: 'Run command after move',
+    flag: '--exec "<CMD>"',
+    warning: 'Exec runs a command. Review it before use.',
+  },
+  {
+    id: 'raw-download-sections',
+    label: 'Download sections',
+    flag: '--download-sections "*00:00-01:00"',
+  },
+]
+
 /** Coverage copy: exact counts are stated only when they come from the spec. */
 export const coverageNote: StringEntry = e('coverageNote', 'label', 'Counts come from the spec')
 

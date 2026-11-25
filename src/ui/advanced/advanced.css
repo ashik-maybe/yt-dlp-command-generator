@@ -99,3 +99,44 @@
 .advanced-close {
   margin-top: var(--space-5);
 }
+
+.advanced-snippet-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  padding-top: var(--space-2);
+  list-style: none;
+}
+
+.advanced-snippet-button {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--rule);
+  background: var(--panel);
+  color: var(--ink);
+  font: var(--text-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.advanced-snippet-label {
+  font-weight: 600;
+}
+
+.advanced-snippet-flag {
+  font: var(--text-mono);
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+
+.advanced-snippet-warning {
+  margin: 0;
+  padding-top: var(--space-1);
+  color: var(--signal-warning, var(--ink-2));
+  font: var(--text-body);
+}
