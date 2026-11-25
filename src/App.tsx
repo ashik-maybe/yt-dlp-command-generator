@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { CSSProperties } from 'react'
-import type { Finding, Recipe, Shell } from './core/types.ts'
+import type { Finding, Recipe } from './core/types.ts'
 import { planFromRecipe, render, validate } from './core/index.ts'
+import {
+  buildHash,
+  DEFAULT_STATE,
+  parseHash,
+  STATE_PREFIX,
+  type ShareState,
+} from './core/router.ts'
 import { coverageNote, heroStrings, validatorWarnings } from './content/index.ts'
 import { recipes } from './recipes/index.ts'
 import { spec } from './spec/index.ts'
@@ -12,53 +19,6 @@ import { FormatLadder } from './ui/moment/index.ts'
 import { OutcomeGrid } from './ui/outcomes/index.ts'
 import { Callout, Field } from './ui/primitives/index.ts'
 import { CommandReceipt } from './ui/receipt/index.ts'
-
-interface ShareState {
-  recipeId: string
-  sourceUrl: string
-  quality: string
-  shell: Shell
-  rawArgs: string
-  advancedOpen: boolean
-}
-
-const DEFAULT_STATE: ShareState = {
-  recipeId: recipes[0]?.id ?? 'best-video',
-  sourceUrl: '',
-  quality: '1080p',
-  shell: 'posix',
-  rawArgs: '',
-  advancedOpen: false,
-}
-
-const SHELLS: Shell[] = ['posix', 'powershell', 'cmd']
-
-function isShell(value: string | null): value is Shell {
-  return value !== null && SHELLS.includes(value as Shell)
-}
-
-export function parseHash(hash: string): ShareState {
-  const params = new URLSearchParams(hash.replace(/^#/, ''))
-  const recipeId = params.get('recipeId') ?? DEFAULT_STATE.recipeId
-  const sourceUrl = params.get('sourceUrl') ?? DEFAULT_STATE.sourceUrl
-  const quality = params.get('quality') ?? DEFAULT_STATE.quality
-  const shellValue = params.get('shell')
-  const shell = isShell(shellValue) ? shellValue : DEFAULT_STATE.shell
-  const rawArgs = params.get('rawArgs') ?? DEFAULT_STATE.rawArgs
-  const advancedOpen = params.get('advancedOpen') === '1'
-  return { recipeId, sourceUrl, quality, shell, rawArgs, advancedOpen }
-}
-
-export function buildHash(state: ShareState): string {
-  const params = new URLSearchParams()
-  params.set('recipeId', state.recipeId)
-  if (state.sourceUrl) params.set('sourceUrl', state.sourceUrl)
-  if (state.quality) params.set('quality', state.quality)
-  params.set('shell', state.shell)
-  if (state.rawArgs) params.set('rawArgs', state.rawArgs)
-  if (state.advancedOpen) params.set('advancedOpen', '1')
-  return `#${params.toString()}`
-}
 
 const OUTCOME_TO_RECIPE: Record<string, string> = {
   outcomeDownloadVideo: 'best-video',
@@ -110,19 +70,22 @@ const SCREEN_2: CSSProperties = { '--h': 2, height: '200svh' } as CSSProperties
 export default function App() {
   const [state, setState] = useState<ShareState>(() => {
     if (typeof window === 'undefined') return DEFAULT_STATE
-    return parseHash(window.location.hash)
+    return parseHash(window.location.search)
   })
 
   useEffect(() => {
     const next = buildHash(state)
-    if (window.location.hash !== next) {
-      history.replaceState(null, '', next)
+    if (window.location.search !== next) {
+      history.replaceState(null, '', `${window.location.pathname}${next}`)
     }
   }, [state])
 
   useEffect(() => {
     const onHashChange = () => {
-      setState(parseHash(window.location.hash))
+      // Anchor-only hashes (e.g. #builder) are navigation, not app state;
+      // the browser scrolls and focuses the target without touching state.
+      if (!window.location.search.startsWith(STATE_PREFIX)) return
+      setState(parseHash(window.location.search))
     }
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
@@ -130,13 +93,7 @@ export default function App() {
 
   useEffect(() => {
     const onPopState = () => {
-      const next = parseHash(window.location.hash)
-      setState((current) => ({
-        ...current,
-        recipeId: next.recipeId,
-        shell: next.shell,
-        quality: next.quality,
-      }))
+      setState(parseHash(window.location.search))
     }
     window.addEventListener('popstate', onPopState)
     return () => window.removeEventListener('popstate', onPopState)

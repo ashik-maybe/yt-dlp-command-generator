@@ -25,7 +25,7 @@ test.describe('responsive layout', () => {
 })
 
 test('selects the recipe from a deep link', async ({ page }) => {
-  await page.goto('/#recipeId=playlist-range&shell=posix')
+  await page.goto('/?recipeId=playlist-range&shell=posix')
   await page.waitForLoadState('networkidle')
 
   await expect(page.getByText(/Playlist range recipe/)).toBeVisible()
@@ -34,16 +34,16 @@ test('selects the recipe from a deep link', async ({ page }) => {
 test('back changes the URL after a state change', async ({ page }) => {
   await page.goto('/')
   await page.waitForLoadState('networkidle')
-  const initialHash = await page.evaluate(() => window.location.hash)
+  const initialSearch = await page.evaluate(() => window.location.search)
 
   const field = page.getByLabel('Source URL')
   await expect(field).toBeVisible()
   await field.fill('https://example.com/video-1')
-  await page.waitForFunction((before) => window.location.hash !== before, initialHash)
-  const changedHash = await page.evaluate(() => window.location.hash)
-  expect(changedHash).not.toBe(initialHash)
+  await page.waitForFunction((before) => window.location.search !== before, initialSearch)
+  const changedSearch = await page.evaluate(() => window.location.search)
+  expect(changedSearch).not.toBe(initialSearch)
 
   await page.goBack()
-  await page.waitForFunction((changed) => window.location.hash !== changed, changedHash)
-  expect(await page.evaluate(() => window.location.hash)).not.toBe(changedHash)
+  await page.waitForFunction((changed) => window.location.search !== changed, changedSearch)
+  expect(await page.evaluate(() => window.location.search)).not.toBe(changedSearch)
 })
