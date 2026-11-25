@@ -1,4 +1,4 @@
-# yt-dlp command generator
+# yt-dlp wrapper
 
 The app builds `yt-dlp` commands from guided inputs.
 It helps people who do not want to memorize flags.

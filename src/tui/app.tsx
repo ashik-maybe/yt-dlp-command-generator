@@ -1,12 +1,16 @@
+import { existsSync, statSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { Box, Text, useApp, useInput } from 'ink'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { planFromRecipe, render } from '../core/index.ts'
-import type { Arg, Plan, Recipe } from '../core/types.ts'
+import type { Arg, Finding, Plan, Recipe } from '../core/types.ts'
 import { parseProgressLine } from '../progress/index.ts'
 import { recipes } from '../recipes/index.ts'
 import { runProcess } from '../runner/index.ts'
 import { compileRuntimeSpec, detectBinary, validateAgainstRuntime } from '../tools/index.ts'
 import type { RuntimeSpec } from '../tools/index.ts'
+import { bindRecipeValues } from './binding.ts'
 import { OutcomeScreen, OptionsScreen, ResultScreen } from './screens/index.ts'
 import type { ResultFinding } from './screens/index.ts'
 
@@ -19,6 +23,10 @@ export interface AppProps {
   yes?: boolean
   /** Binary name or path for detection. */
   binary?: string
+  /** Allow overwriting an existing output file. */
+  force?: boolean
+  /** Allow unsafe recipes and raw exec/output flags. */
+  unsafe?: boolean
 }
 
 function parseRawArgs(raw: string): Arg[] {
@@ -79,7 +87,28 @@ function highValueGroups() {
   }))
 }
 
-function buildPlan(recipe: Recipe, quality: string, rawArgs: string): Plan {
+function getOutputValue(args: readonly Arg[]): string | null {
+  for (const arg of args) {
+    if ((arg.flag === 'o' || arg.flag === 'output') && arg.value) return arg.value
+  }
+  return null
+}
+
+function withInferredOutput(args: Arg[]): Arg[] {
+  if (getOutputValue(args) !== null) return args
+  const tempPath = join(
+    tmpdir(),
+    `yt-dlp-tui-${Date.now()}-${Math.random().toString(16).slice(2)}.out`,
+  )
+  return [...args, { flag: 'output', value: tempPath }]
+}
+
+function buildPlan(
+  recipe: Recipe,
+  quality: string,
+  rawArgs: string,
+  sourceUrl: string,
+): { plan: Plan; bindingFindings: Finding[]; outputPath: string | null } {
   const values: Record<string, string> = { shell: 'posix' }
   // Map quality to format if recipe uses format flag; keep simple.
   if (quality && quality !== 'best') {
@@ -91,19 +120,32 @@ function buildPlan(recipe: Recipe, quality: string, rawArgs: string): Plan {
     const mapped = qualityMap[quality]
     if (mapped) values.format = mapped
   }
-  const plan = planFromRecipe(recipe, values)
+  const basePlan = planFromRecipe(recipe, values)
+  const bound = bindRecipeValues({ ...recipe, args: basePlan.args }, { ...values, sourceUrl })
   const extra = parseRawArgs(rawArgs)
-  if (extra.length === 0) return plan
-  return { ...plan, args: [...plan.args, ...extra] }
+  const merged = extra.length === 0 ? bound.args : [...bound.args, ...extra]
+  const args = withInferredOutput(merged)
+  return {
+    plan: { ...basePlan, args },
+    bindingFindings: bound.findings,
+    outputPath: getOutputValue(args),
+  }
 }
 
 /** Main TUI app. */
-export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppProps) {
+export function App({
+  runEnabled = false,
+  yes = false,
+  binary = 'yt-dlp',
+  force = false,
+  unsafe = false,
+}: AppProps) {
   const { exit } = useApp()
   const [screen, setScreen] = useState<Screen>('outcome')
   const [recipeId, setRecipeId] = useState<string>(HIGH_VALUE_GROUPS[0]?.ids[0] ?? '')
   const [quality, setQuality] = useState('best')
   const [rawArgs, setRawArgs] = useState('')
+  const [sourceUrl, setSourceUrl] = useState('')
   const [shell] = useState<'posix'>('posix')
   const [detection] = useState(() => {
     const detected = detectBinary(binary)
@@ -133,36 +175,84 @@ export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppP
   const [progressPercent, setProgressPercent] = useState<number | null>(null)
   const [progressSpeed, setProgressSpeed] = useState<string | null>(null)
   const [rawLog, setRawLog] = useState('')
+  const [verification, setVerification] = useState<'verified' | 'failed' | 'blocked' | null>(null)
+  const [blockedReason, setBlockedReason] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const ranRef = useRef(false)
   const stdoutBufferRef = useRef('')
 
   const selectedRecipe = useMemo(() => recipeFromId(recipeId), [recipeId])
 
-  const plan = useMemo(() => {
+  const built = useMemo(() => {
     if (!selectedRecipe) return null
-    return buildPlan(selectedRecipe, quality, rawArgs)
-  }, [selectedRecipe, quality, rawArgs])
+    return buildPlan(selectedRecipe, quality, rawArgs, sourceUrl)
+  }, [selectedRecipe, quality, rawArgs, sourceUrl])
+
+  const plan = built?.plan ?? null
 
   const command = useMemo(() => (plan ? planCommand(plan) : ''), [plan])
 
   const findings: ResultFinding[] = useMemo(() => {
-    if (!selectedRecipe || !spec) return []
-    // Validate the recipe extended with raw args as a synthetic recipe.
-    const extra = parseRawArgs(rawArgs)
-    const recipeForValidation: Recipe = {
-      ...selectedRecipe,
-      args: [...selectedRecipe.args, ...extra],
-    }
-    return validateAgainstRuntime(spec, recipeForValidation).map((f) => ({
+    if (!selectedRecipe) return []
+    const bindingFindings: ResultFinding[] = (built?.bindingFindings ?? []).map((f) => ({
       severity: f.severity,
       code: f.code,
       message: f.message,
     }))
-  }, [selectedRecipe, spec, rawArgs])
+    if (!spec) return bindingFindings
+    const recipeForValidation: Recipe = {
+      ...selectedRecipe,
+      args: built?.plan.args ?? selectedRecipe.args,
+    }
+    const validationFindings = validateAgainstRuntime(spec, recipeForValidation).map((f) => ({
+      severity: f.severity,
+      code: f.code,
+      message: f.message,
+    }))
+    return [...bindingFindings, ...validationFindings]
+  }, [selectedRecipe, spec, built])
 
   const doRun = useCallback(async () => {
     if (!runEnabled || !plan || running || ranRef.current) return
+
+    if (!unsafe) {
+      const recipeIdUnsafe =
+        selectedRecipe?.id === 'exec-guarded' || selectedRecipe?.id === 'stdout-pipe'
+      const rawExec = /(^|\s)--exec(=|\s|$)/.test(rawArgs)
+      const rawOutputDash = /(^|\s)(--output|-o)(\s+|=)-(\s|$)/.test(rawArgs)
+      const planExec = plan.args.some((a) => a.flag === 'exec')
+      const planOutputDash = plan.args.some(
+        (a) => (a.flag === 'output' || a.flag === 'o') && a.value === '-',
+      )
+      if (recipeIdUnsafe || rawExec || rawOutputDash || planExec || planOutputDash) {
+        ranRef.current = true
+        setRunStatus('blocked')
+        setVerification('blocked')
+        setBlockedReason('Blocked: unsafe recipe or flag requires --unsafe.')
+        return
+      }
+    }
+
+    const blockingFindings = findings.filter(
+      (f) => f.code === 'UNBOUND_PLACEHOLDER' || f.severity === 'error',
+    )
+    if (blockingFindings.length > 0) {
+      ranRef.current = true
+      setRunStatus('blocked')
+      setVerification('blocked')
+      setBlockedReason('Blocked: resolve blocking findings before running.')
+      return
+    }
+
+    const outputPath = built?.outputPath ?? null
+    if (outputPath && outputPath !== '-' && existsSync(outputPath) && !force) {
+      ranRef.current = true
+      setRunStatus('blocked')
+      setVerification('blocked')
+      setBlockedReason('Blocked: output file exists. Use --force to overwrite.')
+      return
+    }
+
     ranRef.current = true
     const detected = detectBinary(binary)
     if (!detected.ok) {
@@ -173,6 +263,7 @@ export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppP
     abortRef.current = controller
     setRunning(true)
     setRunStatus('running')
+    setVerification(null)
     setProgressPercent(null)
     setProgressSpeed(null)
     setRawLog('')
@@ -210,14 +301,30 @@ export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppP
         onLine(tail)
         stdoutBufferRef.current = ''
       }
-      setRunStatus(result.exitCode === 0 ? 'exit 0' : `exit ${result.exitCode ?? 1}`)
+      if (result.exitCode === 0) {
+        setRunStatus('exit 0')
+        if (outputPath && outputPath !== '-') {
+          try {
+            const ok = existsSync(outputPath) && statSync(outputPath).size > 0
+            setVerification(ok ? 'verified' : 'failed')
+          } catch {
+            setVerification('failed')
+          }
+        } else {
+          setVerification('verified')
+        }
+      } else {
+        setRunStatus(`exit ${result.exitCode ?? 1}`)
+        setVerification('failed')
+      }
     } catch {
       setRunStatus('failed')
+      setVerification('failed')
     } finally {
       setRunning(false)
       abortRef.current = null
     }
-  }, [runEnabled, plan, running, binary])
+  }, [runEnabled, plan, running, binary, findings, built, force, unsafe, selectedRecipe, rawArgs])
 
   useEffect(() => {
     if (screen !== 'result') return
@@ -277,6 +384,8 @@ export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppP
         quality={quality}
         shell={shell}
         rawArgs={rawArgs}
+        sourceUrl={sourceUrl}
+        onSourceUrl={setSourceUrl}
         onChange={(value) => {
           setQuality(value.quality)
           setRawArgs(value.rawArgs)
@@ -295,6 +404,8 @@ export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppP
       progressPercent={showRunInfo ? progressPercent : undefined}
       progressSpeed={showRunInfo ? progressSpeed : undefined}
       rawLog={showRunInfo ? rawLog : undefined}
+      verification={showRunInfo ? verification : undefined}
+      blockedReason={showRunInfo ? blockedReason : undefined}
     />
   )
 }

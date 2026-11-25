@@ -23,19 +23,37 @@ export interface OptionsScreenProps {
   shell: 'posix'
   /** Extra raw arguments. */
   rawArgs: string
+  /** Source URL value. */
+  sourceUrl: string
+  /** Called when source URL changes. */
+  onSourceUrl: (value: string) => void
   /** Called when any option changes. */
   onChange: (value: OptionsScreenValue) => void
 }
 
-type FocusField = 'quality' | 'rawArgs'
+type FocusField = 'quality' | 'sourceUrl' | 'rawArgs'
+
+const FOCUS_ORDER: FocusField[] = ['quality', 'sourceUrl', 'rawArgs']
 
 /** Screen for choosing command options. */
-export function OptionsScreen({ quality, shell, rawArgs, onChange }: OptionsScreenProps) {
+export function OptionsScreen({
+  quality,
+  shell,
+  rawArgs,
+  sourceUrl,
+  onSourceUrl,
+  onChange,
+}: OptionsScreenProps) {
   const [focus, setFocus] = useState<FocusField>('quality')
 
   useInput((input, key) => {
     if (key.upArrow || key.downArrow) {
-      setFocus((current) => (current === 'quality' ? 'rawArgs' : 'quality'))
+      setFocus((current) => {
+        const index = FOCUS_ORDER.indexOf(current)
+        const direction = key.downArrow ? 1 : -1
+        const nextIndex = (index + direction + FOCUS_ORDER.length) % FOCUS_ORDER.length
+        return FOCUS_ORDER[nextIndex] ?? 'quality'
+      })
       return
     }
 
@@ -52,7 +70,8 @@ export function OptionsScreen({ quality, shell, rawArgs, onChange }: OptionsScre
     }
 
     if (key.backspace || key.delete) {
-      onChange({ quality, shell: 'posix', rawArgs: rawArgs.slice(0, -1) })
+      if (focus === 'sourceUrl') onSourceUrl(sourceUrl.slice(0, -1))
+      else onChange({ quality, shell: 'posix', rawArgs: rawArgs.slice(0, -1) })
       return
     }
 
@@ -69,11 +88,13 @@ export function OptionsScreen({ quality, shell, rawArgs, onChange }: OptionsScre
     }
 
     if (input) {
-      onChange({ quality, shell: 'posix', rawArgs: rawArgs + input })
+      if (focus === 'sourceUrl') onSourceUrl(sourceUrl + input)
+      else onChange({ quality, shell: 'posix', rawArgs: rawArgs + input })
     }
   })
 
   const qualityMarker = focus === 'quality' ? '>' : ' '
+  const sourceMarker = focus === 'sourceUrl' ? '>' : ' '
   const rawArgsMarker = focus === 'rawArgs' ? '>' : ' '
 
   return (
@@ -85,6 +106,9 @@ export function OptionsScreen({ quality, shell, rawArgs, onChange }: OptionsScre
         </Text>
         <Text> Choices: {QUALITY_OPTIONS.join(' | ')}</Text>
         <Text>
+          {sourceMarker} Source URL: {sourceUrl}
+        </Text>
+        <Text>
           {rawArgsMarker} Raw args: {rawArgs}
         </Text>
         <Text> Shell: {shell}</Text>
@@ -94,7 +118,7 @@ export function OptionsScreen({ quality, shell, rawArgs, onChange }: OptionsScre
           hints={[
             { key: 'Up/Down', action: 'focus' },
             { key: 'Left/Right', action: 'quality' },
-            { key: 'Type', action: 'raw args' },
+            { key: 'Type', action: 'value' },
           ]}
         />
       </Box>

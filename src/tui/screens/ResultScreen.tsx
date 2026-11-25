@@ -26,6 +26,10 @@ export interface ResultScreenProps {
   progressSpeed?: string | null
   /** Raw process output log. */
   rawLog?: string
+  /** Output verification or blocking status. */
+  verification?: 'verified' | 'failed' | 'blocked' | null
+  /** Reason shown when execution is blocked. */
+  blockedReason?: string | null
 }
 
 /** Screen for command output and findings. */
@@ -37,6 +41,8 @@ export function ResultScreen({
   progressPercent,
   progressSpeed,
   rawLog,
+  verification,
+  blockedReason,
 }: ResultScreenProps) {
   const hasProgress = progressPercent !== undefined || progressSpeed !== undefined
   return (
@@ -47,6 +53,12 @@ export function ResultScreen({
         <Text>Command:</Text>
         <Text>{command}</Text>
       </Box>
+      {verification ? (
+        <Box flexDirection="column" marginTop={1}>
+          <Text>Verification: {verification}</Text>
+          {blockedReason ? <Text>{blockedReason}</Text> : null}
+        </Box>
+      ) : null}
       {hasProgress ? (
         <Box flexDirection="column" marginTop={1}>
           <Text>Progress:</Text>

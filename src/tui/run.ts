@@ -10,6 +10,8 @@ export function parseArgs(args: string[]): TuiArgs {
     help: args.includes('--help'),
     run: args.includes('--run'),
     yes: args.includes('--yes'),
+    unsafe: args.includes('--unsafe'),
+    force: args.includes('--force'),
   }
 }
 
@@ -24,13 +26,21 @@ export function run(args: string[]): { code: number; output: string } {
   }
 
   if (parsed.help) {
-    const output = 'Usage: yt-dlp-tui [--version] [--help] [--run] [--yes]'
+    const output = 'Usage: yt-dlp-tui [--version] [--help] [--run] [--yes] [--unsafe] [--force]'
     console.log(output)
     return { code: 0, output }
   }
 
-  render(React.createElement(App, { runEnabled: parsed.run, yes: parsed.yes }), {
-    exitOnCtrlC: false,
-  })
+  render(
+    React.createElement(App, {
+      runEnabled: parsed.run,
+      yes: parsed.yes,
+      unsafe: parsed.unsafe,
+      force: parsed.force,
+    }),
+    {
+      exitOnCtrlC: false,
+    },
+  )
   return { code: 0, output: '' }
 }

@@ -17,6 +17,10 @@ export interface TuiArgs {
   run: boolean
   /** True when --yes is present. */
   yes: boolean
+  /** True when --force is present. */
+  force?: boolean
+  /** True when --unsafe is present. */
+  unsafe: boolean
 }
 
 /** A plan shown on one TUI screen. */

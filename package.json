@@ -1,5 +1,5 @@
 {
-  "name": "yt-dlp-command-generator",
+  "name": "yt-dlp-wrapper",
   "version": "0.0.0",
   "private": true,
   "type": "module",

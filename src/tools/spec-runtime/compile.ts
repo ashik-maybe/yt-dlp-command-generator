@@ -106,7 +106,7 @@ export function sha256(text: string): string {
 
 /** Default cache directory for runtime specs. */
 export function defaultCacheDir(): string {
-  return join(tmpdir(), 'yt-dlp-command-generator', 'spec-runtime')
+  return join(tmpdir(), 'yt-dlp-wrapper', 'spec-runtime')
 }
 
 function cachePath(cacheDir: string, version: string, helpHash: string): string {

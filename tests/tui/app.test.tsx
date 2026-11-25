@@ -11,6 +11,7 @@ const CANNED_HELP = `Usage: yt-dlp [OPTIONS] URL [URL...]
 General Options:
     -h, --help                      Print this help text and exit
     --version                       Print program version and exit
+    --list-formats                  List available formats
 
 Download Options:
     -f, --format FORMAT             Video format code
@@ -96,6 +97,8 @@ describe('tui app', () => {
     await waitForText(lastFrame, '[Options]')
 
     // Move focus to raw args and type unknown flag.
+    stdin.write('\u001B[B')
+    await tick(50)
     stdin.write('\u001B[B')
     await tick(50)
     stdin.write('--bogus-flag')
