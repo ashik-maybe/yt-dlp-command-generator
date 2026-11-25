@@ -6,7 +6,7 @@
   --panel: #e3e7de;
   --ink: #111a20;
   --ink-2: #5a6660;
-  --rule: #c7cec4;
+  --rule: #838383;
 
   /* Accent */
   --stamp: #2a3fd4;
@@ -32,6 +32,9 @@
   --radius-sm: 0px;
   --radius-lg: 0px;
 
+  /* Motion */
+  --ease: cubic-bezier(.4,0,.2,1);
+
   /* Body type */
   --font-size-body: 17px;
   --line-height-body: 1.55;
@@ -43,4 +46,9 @@
   --text-display: 700 1.05em var(--font-display);
   --text-body: 400 var(--font-size-body) / var(--line-height-body) var(--font-body);
   --text-mono: 400 0.9em var(--font-mono);
+
+  /* Heading scale */
+  --type-h1: 2.75rem;
+  --type-h2: 2rem;
+  --type-h3: 1.5rem;
 }
