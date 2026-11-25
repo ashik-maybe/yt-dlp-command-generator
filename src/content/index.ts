@@ -37,6 +37,16 @@ export const outcomeStrings: StringEntry[] = [
   e('outcomeResumeDownload', 'label', 'Resume download'),
   e('outcomeListFormats', 'label', 'List formats'),
   e('outcomeCopyCommand', 'label', 'Copy command'),
+  e('chapters', 'label', 'Save chapters'),
+  e('thumbnails-embed', 'label', 'Embed thumbnail'),
+  e('subtitles-only', 'label', 'Subtitles only'),
+  e('playlist-reverse', 'label', 'Reverse playlist'),
+  e('archive-skip', 'label', 'Skip archived'),
+  e('format-sort', 'label', 'Sort formats'),
+  e('sponsorblock-all', 'label', 'Remove sponsor segments'),
+  e('metadata-only', 'label', 'Write metadata'),
+  e('geo-bypass', 'label', 'Bypass geography'),
+  e('sleep', 'label', 'Add delays'),
 ]
 
 /** Labels for format quality. */
