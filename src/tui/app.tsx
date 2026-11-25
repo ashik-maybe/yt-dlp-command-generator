@@ -50,6 +50,35 @@ function recipeFromId(id: string): Recipe | undefined {
   return recipes.find((r) => r.id === id) as Recipe | undefined
 }
 
+const HIGH_VALUE_GROUPS = [
+  {
+    label: 'Select',
+    ids: ['list-formats', 'match-filters', 'format-sort-small', 'use-extractors'],
+  },
+  {
+    label: 'Metadata',
+    ids: ['parse-metadata', 'split-chapters', 'force-keyframes-at-cuts', 'load-info-json'],
+  },
+  {
+    label: 'Network',
+    ids: ['impersonate', 'concurrent-fragments', 'throttled-rate', 'sleep-jitter'],
+  },
+  {
+    label: 'Output',
+    ids: ['template-playlist', 'template-chapter', 'stdout-pipe', 'exec-guarded'],
+  },
+] as const
+
+function highValueGroups() {
+  return HIGH_VALUE_GROUPS.map((group) => ({
+    label: group.label,
+    items: group.ids
+      .map((id) => recipes.find((recipe) => recipe.id === id))
+      .filter((recipe): recipe is NonNullable<typeof recipe> => recipe !== undefined)
+      .map((recipe) => ({ id: recipe.id, name: recipe.name })),
+  }))
+}
+
 function buildPlan(recipe: Recipe, quality: string, rawArgs: string): Plan {
   const values: Record<string, string> = { shell: 'posix' }
   // Map quality to format if recipe uses format flag; keep simple.
@@ -72,7 +101,7 @@ function buildPlan(recipe: Recipe, quality: string, rawArgs: string): Plan {
 export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppProps) {
   const { exit } = useApp()
   const [screen, setScreen] = useState<Screen>('outcome')
-  const [recipeId, setRecipeId] = useState<string>(recipes[0]?.id ?? '')
+  const [recipeId, setRecipeId] = useState<string>(HIGH_VALUE_GROUPS[0]?.ids[0] ?? '')
   const [quality, setQuality] = useState('best')
   const [rawArgs, setRawArgs] = useState('')
   const [shell] = useState<'posix'>('posix')
@@ -232,7 +261,7 @@ export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppP
   if (screen === 'outcome') {
     return (
       <OutcomeScreen
-        outcomes={recipes.map((r) => ({ id: r.id, name: r.name }))}
+        groups={highValueGroups()}
         selectedId={recipeId}
         onSelect={(id) => {
           setRecipeId(id)
