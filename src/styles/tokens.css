@@ -13,6 +13,9 @@
   --alert: #a3271c;
   --ok: #1e6b4f;
 
+  /* Layout */
+  --header-height: var(--space-8);
+
   /* Spacing, 4px steps */
   --space-1: 4px;
   --space-2: 8px;
@@ -43,7 +46,7 @@
   --font-display: 'Archivo', sans-serif;
   --font-body: 'Archivo', sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
-  --text-display: 700 1.05em var(--font-display);
+  --text-display: 500 1.05em var(--font-display);
   --text-body: 400 var(--font-size-body) / var(--line-height-body) var(--font-body);
   --text-mono: 400 0.9em var(--font-mono);
 
