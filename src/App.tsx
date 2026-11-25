@@ -245,11 +245,7 @@ export default function App() {
         {findings.length > 0 && (
           <div className="stack" role="alert">
             {findings.map((finding, index) => (
-              <Callout
-                key={`${finding.code}-${index}`}
-                tone={findingTone(finding.severity)}
-                title={finding.code}
-              >
+              <Callout key={`${finding.code}-${index}`} tone={findingTone(finding.severity)}>
                 {warningText(finding.code)}
               </Callout>
             ))}

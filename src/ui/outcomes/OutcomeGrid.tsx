@@ -23,12 +23,12 @@ const OUTCOME_ICONS: Record<string, LucideIcon> = {
 
 /** Short sentence under each outcome name. */
 const OUTCOME_SENTENCES: Record<string, string> = {
-  outcomeDownloadVideo: 'Save the clip for later.',
-  outcomeExtractAudio: 'Keep the sound, drop the picture.',
-  outcomeConvertFormat: 'Same video, different format.',
-  outcomeResumeDownload: 'Pick up where it stopped.',
-  outcomeListFormats: 'See the formats yt-dlp offers.',
-  outcomeCopyCommand: 'Copy the ready-to-paste line.',
+  outcomeDownloadVideo: 'Save the clip for later',
+  outcomeExtractAudio: 'Keep the sound, drop the picture',
+  outcomeConvertFormat: 'Same video, different format',
+  outcomeResumeDownload: 'Pick up where it stopped',
+  outcomeListFormats: 'See the formats yt-dlp offers',
+  outcomeCopyCommand: 'Copy the ready-to-paste line',
 }
 
 interface OutcomeCardProps {
