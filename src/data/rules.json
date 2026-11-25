@@ -59,5 +59,50 @@
     "message": "playlist-reverse is deprecated",
     "fix": "Use -I ::-1 instead.",
     "forbidAny": ["playlist-reverse"]
+  },
+  {
+    "code": "EXEC_WITHOUT_YES",
+    "severity": "warning",
+    "message": "exec without yes needs confirmation",
+    "fix": "Add --yes to confirm command execution.",
+    "appliesWhen": ["exec"],
+    "requireAny": ["yes"]
+  },
+  {
+    "code": "LOAD_INFO_JSON_WITH_URL",
+    "severity": "warning",
+    "message": "load-info-json with a URL may be unintended",
+    "fix": "Remove the URL or use a local info JSON file.",
+    "appliesWhen": ["load-info-json"],
+    "urls": ["http://", "https://"],
+    "forbidAny": ["load-info-json"]
+  },
+  {
+    "code": "DOWNLOAD_SECTIONS_WITHOUT_FORCE_KEYFRAMES",
+    "severity": "info",
+    "message": "download-sections without force-keyframes-at-cuts may be imprecise",
+    "fix": "Add --force-keyframes-at-cuts for precise cuts.",
+    "appliesWhen": ["download-sections"],
+    "requireAny": ["force-keyframes-at-cuts"]
+  },
+  {
+    "code": "MATCH_FILTER_BAD_OPERATOR",
+    "severity": "error",
+    "message": "match-filters has a bad operator",
+    "fix": "Use a valid match-filter operator such as =, !=, >, <, >=, or <=.",
+    "valueRejects": {
+      "flag": "match-filters",
+      "pattern": "===|!==|==|<>|=>|=<"
+    }
+  },
+  {
+    "code": "CONCURRENT_FRAGMENTS_HIGH",
+    "severity": "warning",
+    "message": "concurrent-fragments above 16 may cause issues",
+    "fix": "Use a value of 16 or lower.",
+    "valueAbove": {
+      "flag": "concurrent-fragments",
+      "max": 16
+    }
   }
 ]
