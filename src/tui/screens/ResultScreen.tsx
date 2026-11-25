@@ -20,10 +20,25 @@ export interface ResultScreenProps {
   version: string
   /** True while a run is active. */
   running: boolean
+  /** Latest parsed progress percent. */
+  progressPercent?: number | null
+  /** Latest parsed progress speed. */
+  progressSpeed?: string | null
+  /** Raw process output log. */
+  rawLog?: string
 }
 
 /** Screen for command output and findings. */
-export function ResultScreen({ command, findings, version, running }: ResultScreenProps) {
+export function ResultScreen({
+  command,
+  findings,
+  version,
+  running,
+  progressPercent,
+  progressSpeed,
+  rawLog,
+}: ResultScreenProps) {
+  const hasProgress = progressPercent !== undefined || progressSpeed !== undefined
   return (
     <Box flexDirection="column">
       <StatusBar label="Result" value={running ? 'running' : 'ready'} />
@@ -32,6 +47,17 @@ export function ResultScreen({ command, findings, version, running }: ResultScre
         <Text>Command:</Text>
         <Text>{command}</Text>
       </Box>
+      {hasProgress ? (
+        <Box flexDirection="column" marginTop={1}>
+          <Text>Progress:</Text>
+          <Text>
+            {'  '}percent: {progressPercent ?? 'unknown'}
+          </Text>
+          <Text>
+            {'  '}speed: {progressSpeed ?? 'unknown'}
+          </Text>
+        </Box>
+      ) : null}
       <Box flexDirection="column" marginTop={1}>
         <Text>Findings:</Text>
         {findings.length === 0 ? (
@@ -44,6 +70,12 @@ export function ResultScreen({ command, findings, version, running }: ResultScre
           ))
         )}
       </Box>
+      {rawLog !== undefined ? (
+        <Box flexDirection="column" marginTop={1}>
+          <Text>Raw log:</Text>
+          <Text>{rawLog.length > 0 ? rawLog : ' (empty)'}</Text>
+        </Box>
+      ) : null}
       <Box marginTop={1}>
         <KeyHint hints={[{ key: 'q', action: 'quit' }]} />
       </Box>

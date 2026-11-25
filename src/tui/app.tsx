@@ -2,6 +2,7 @@ import { Box, Text, useApp, useInput } from 'ink'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { planFromRecipe, render } from '../core/index.ts'
 import type { Arg, Plan, Recipe } from '../core/types.ts'
+import { parseProgressLine } from '../progress/index.ts'
 import { recipes } from '../recipes/index.ts'
 import { runProcess } from '../runner/index.ts'
 import { compileRuntimeSpec, detectBinary, validateAgainstRuntime } from '../tools/index.ts'
@@ -100,8 +101,12 @@ export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppP
   const binaryMessage = detection.message
   const [runStatus, setRunStatus] = useState<string>('ready')
   const [running, setRunning] = useState(false)
+  const [progressPercent, setProgressPercent] = useState<number | null>(null)
+  const [progressSpeed, setProgressSpeed] = useState<string | null>(null)
+  const [rawLog, setRawLog] = useState('')
   const abortRef = useRef<AbortController | null>(null)
   const ranRef = useRef(false)
+  const stdoutBufferRef = useRef('')
 
   const selectedRecipe = useMemo(() => recipeFromId(recipeId), [recipeId])
 
@@ -139,6 +144,10 @@ export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppP
     abortRef.current = controller
     setRunning(true)
     setRunStatus('running')
+    setProgressPercent(null)
+    setProgressSpeed(null)
+    setRawLog('')
+    stdoutBufferRef.current = ''
     const argv = [
       detected.path,
       ...plan.args.flatMap((a) => {
@@ -149,8 +158,29 @@ export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppP
         return [flag]
       }),
     ]
+    const onLine = (line: string) => {
+      const update = parseProgressLine(line)
+      if (update === null) return
+      if (update.percent !== null) setProgressPercent(update.percent)
+      if (update.speed !== null) setProgressSpeed(update.speed)
+    }
+    const onStdout = (chunk: string) => {
+      setRawLog((prev) => prev + chunk)
+      stdoutBufferRef.current += chunk
+      const parts = stdoutBufferRef.current.split(/\r\n|\n|\r/)
+      stdoutBufferRef.current = parts.pop() ?? ''
+      for (const part of parts) onLine(part)
+    }
+    const onStderr = (chunk: string) => {
+      setRawLog((prev) => prev + chunk)
+    }
     try {
-      const result = await runProcess(argv, controller.signal)
+      const result = await runProcess(argv, controller.signal, { onStdout, onStderr })
+      const tail = stdoutBufferRef.current
+      if (tail.length > 0) {
+        onLine(tail)
+        stdoutBufferRef.current = ''
+      }
       setRunStatus(result.exitCode === 0 ? 'exit 0' : `exit ${result.exitCode ?? 1}`)
     } catch {
       setRunStatus('failed')
@@ -226,12 +256,16 @@ export function App({ runEnabled = false, yes = false, binary = 'yt-dlp' }: AppP
     )
   }
 
+  const showRunInfo = runEnabled || runStatus !== 'ready'
   return (
     <ResultScreen
       command={command}
       findings={findings}
       version={`${version}${runEnabled ? ` | ${runStatus}` : ''}`}
       running={running}
+      progressPercent={showRunInfo ? progressPercent : undefined}
+      progressSpeed={showRunInfo ? progressSpeed : undefined}
+      rawLog={showRunInfo ? rawLog : undefined}
     />
   )
 }

@@ -29,6 +29,8 @@ export function run(args: string[]): { code: number; output: string } {
     return { code: 0, output }
   }
 
-  render(React.createElement(App, { runEnabled: parsed.run, yes: parsed.yes }))
+  render(React.createElement(App, { runEnabled: parsed.run, yes: parsed.yes }), {
+    exitOnCtrlC: false,
+  })
   return { code: 0, output: '' }
 }
