@@ -81,6 +81,8 @@ describe('tui ux polish', () => {
     expect(frame.toLowerCase()).toContain('help')
     expect(frame).toContain('?')
     expect(frame).toContain('Esc')
+    expect(frame).toContain('m')
+    expect(frame).toContain('a')
 
     stdin.write('\u001B')
     await tick()

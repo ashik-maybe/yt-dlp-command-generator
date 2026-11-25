@@ -8,14 +8,13 @@ export interface HelpOverlayProps {
 
 const KEYS: Array<{ key: string; action: string }> = [
   { key: 'Up/Down', action: 'move or focus' },
-  { key: 'Left/Right', action: 'change quality' },
   { key: 'Enter', action: 'select or continue' },
-  { key: 'Type', action: 'edit field value' },
-  { key: 'Backspace', action: 'delete character' },
-  { key: 'r', action: 'run command when enabled' },
-  { key: 'q', action: 'quit from result' },
+  { key: 'm', action: 'open more tasks' },
+  { key: 'a', action: 'toggle advanced options' },
   { key: '?', action: 'toggle help' },
-  { key: 'Esc', action: 'close help' },
+  { key: 'Esc', action: 'go back or close help' },
+  { key: 'q', action: 'quit from result' },
+  { key: 'r', action: 'run command when enabled' },
   { key: 'Ctrl+C', action: 'quit immediately' },
 ]
 
