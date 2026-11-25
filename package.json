@@ -4,9 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview",
     "lint": "oxlint",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
@@ -15,45 +12,23 @@
     "design:lint": "node scripts/design-lint.mjs",
     "spec:check": "node scripts/spec-check.mjs",
     "readme:check": "node scripts/readme-check.mjs",
-    "ci": "bun run lint && bun run format:check && bun run typecheck && bun run design:lint && bun run spec:check && bun run readme:check && bun run test && bun run build",
+    "ci": "bun run lint && bun run format:check && bun run typecheck && bun run design:lint && bun run spec:check && bun run readme:check && bun run test && bun run tui:test",
     "tui": "bun bin/yt-dlp-tui.ts",
     "tui:build": "bun build bin/yt-dlp-tui.ts --compile --target bun-linux-x64 --outfile dist/yt-dlp-tui-linux-x64",
     "tui:arm": "bun build bin/yt-dlp-tui.ts --compile --target bun-linux-arm64 --outfile dist/yt-dlp-tui-linux-arm64",
     "tui:test": "vitest run tests/tui"
   },
   "dependencies": {
-    "@radix-ui/react-dialog": "^1.3.1",
-    "@radix-ui/react-label": "^2.1.17",
-    "@radix-ui/react-popover": "^1.3.1",
-    "@radix-ui/react-slider": "^1.6.1",
-    "@radix-ui/react-tabs": "^1.2.1",
-    "@radix-ui/react-toggle-group": "^1.2.1",
-    "@radix-ui/react-tooltip": "^1.4.1",
-    "@radix-ui/react-visually-hidden": "^1.2.13",
     "ink": "^8.0.0",
-    "lucide-react": "^1.79.0",
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "react": "^19.3.1"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.14.1",
-    "@fontsource/archivo": "^5.3.0",
-    "@fontsource/ibm-plex-mono": "^5.3.0",
-    "@playwright/test": "^1.65.1",
-    "@tailwindcss/vite": "^4",
-    "@testing-library/react": "^16.3.3",
-    "@testing-library/user-event": "^14.6.13",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
-    "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.1.2",
     "ink-testing-library": "^4.0.0",
-    "jsdom": "^31.0.1",
     "oxfmt": "0.80.0",
     "oxlint": "1.95.0",
-    "tailwindcss": "^4",
     "typescript": "~7.0.2",
-    "vite": "^8.3.6",
     "vitest": "^5.1.1"
   }
 }

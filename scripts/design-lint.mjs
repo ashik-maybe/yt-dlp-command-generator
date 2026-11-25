@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
-const roots = ['src', 'scripts', 'design']
+const roots = ['src', 'scripts']
 const self = resolve(new URL(import.meta.url).pathname)
 
 const banned = [
