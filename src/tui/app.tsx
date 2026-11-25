@@ -25,6 +25,8 @@ export interface AppProps {
   binary?: string
   /** Allow overwriting an existing output file. */
   force?: boolean
+  /** Allow unsafe recipes and raw exec/output flags. */
+  unsafe?: boolean
 }
 
 function parseRawArgs(raw: string): Arg[] {
@@ -136,6 +138,7 @@ export function App({
   yes = false,
   binary = 'yt-dlp',
   force = false,
+  unsafe = false,
 }: AppProps) {
   const { exit } = useApp()
   const [screen, setScreen] = useState<Screen>('outcome')
@@ -173,6 +176,7 @@ export function App({
   const [progressSpeed, setProgressSpeed] = useState<string | null>(null)
   const [rawLog, setRawLog] = useState('')
   const [verification, setVerification] = useState<'verified' | 'failed' | 'blocked' | null>(null)
+  const [blockedReason, setBlockedReason] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const ranRef = useRef(false)
   const stdoutBufferRef = useRef('')
@@ -211,6 +215,24 @@ export function App({
   const doRun = useCallback(async () => {
     if (!runEnabled || !plan || running || ranRef.current) return
 
+    if (!unsafe) {
+      const recipeIdUnsafe =
+        selectedRecipe?.id === 'exec-guarded' || selectedRecipe?.id === 'stdout-pipe'
+      const rawExec = /(^|\s)--exec(=|\s|$)/.test(rawArgs)
+      const rawOutputDash = /(^|\s)(--output|-o)(\s+|=)-(\s|$)/.test(rawArgs)
+      const planExec = plan.args.some((a) => a.flag === 'exec')
+      const planOutputDash = plan.args.some(
+        (a) => (a.flag === 'output' || a.flag === 'o') && a.value === '-',
+      )
+      if (recipeIdUnsafe || rawExec || rawOutputDash || planExec || planOutputDash) {
+        ranRef.current = true
+        setRunStatus('blocked')
+        setVerification('blocked')
+        setBlockedReason('Blocked: unsafe recipe or flag requires --unsafe.')
+        return
+      }
+    }
+
     const blockingFindings = findings.filter(
       (f) => f.code === 'UNBOUND_PLACEHOLDER' || f.severity === 'error',
     )
@@ -218,6 +240,7 @@ export function App({
       ranRef.current = true
       setRunStatus('blocked')
       setVerification('blocked')
+      setBlockedReason('Blocked: resolve blocking findings before running.')
       return
     }
 
@@ -226,6 +249,7 @@ export function App({
       ranRef.current = true
       setRunStatus('blocked')
       setVerification('blocked')
+      setBlockedReason('Blocked: output file exists. Use --force to overwrite.')
       return
     }
 
@@ -300,7 +324,7 @@ export function App({
       setRunning(false)
       abortRef.current = null
     }
-  }, [runEnabled, plan, running, binary, findings, built, force])
+  }, [runEnabled, plan, running, binary, findings, built, force, unsafe, selectedRecipe, rawArgs])
 
   useEffect(() => {
     if (screen !== 'result') return
@@ -381,6 +405,7 @@ export function App({
       progressSpeed={showRunInfo ? progressSpeed : undefined}
       rawLog={showRunInfo ? rawLog : undefined}
       verification={showRunInfo ? verification : undefined}
+      blockedReason={showRunInfo ? blockedReason : undefined}
     />
   )
 }
