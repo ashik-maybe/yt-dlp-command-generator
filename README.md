@@ -34,3 +34,11 @@ node tools/spec-compiler/generate.mjs
 ```
 
 `bun run spec:check` verifies option count, flag shape, pinned version, and help SHA-256.
+
+## TUI
+
+The TUI is Linux only.
+By default it does not execute commands.
+Use `--run` to execute the generated command.
+Use `--yes` to skip confirmation before execution.
+Local tool versions are detected at runtime.
