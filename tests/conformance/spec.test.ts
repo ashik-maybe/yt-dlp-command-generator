@@ -17,15 +17,20 @@ interface Spec {
   version: string
   pinnedVersion: string
   provenance: { version: string }
-  options: Array<{ flag: string }>
+  options: Array<{ flag: string; alias?: string }>
+  deprecated?: string[]
 }
 
 const specPath = new URL('../../src/spec/options.json', import.meta.url)
 const recipesPath = new URL('../../src/data/recipes.json', import.meta.url)
+const recipesExtraPath = new URL('../../src/data/recipes-extra.json', import.meta.url)
+const recipesAdvancedPath = new URL('../../src/data/recipes-advanced.json', import.meta.url)
 const helpPath = new URL('../../.cache/yt-dlp-help.txt', import.meta.url)
 
 const spec = JSON.parse(readFileSync(specPath, 'utf8')) as Spec
 const recipes = JSON.parse(readFileSync(recipesPath, 'utf8')) as Recipe[]
+const recipesExtra = JSON.parse(readFileSync(recipesExtraPath, 'utf8')) as Recipe[]
+const recipesAdvanced = JSON.parse(readFileSync(recipesAdvancedPath, 'utf8')) as Recipe[]
 const help = readFileSync(helpPath, 'utf8')
 
 function recipeFlags(recipe: Recipe): string[] {
@@ -41,7 +46,7 @@ describe('spec conformance', () => {
 
   it('every bare flag in every recipe exists in cached help', () => {
     const missing: string[] = []
-    for (const recipe of recipes) {
+    for (const recipe of [...recipes, ...recipesExtra, ...recipesAdvanced]) {
       for (const flag of recipeFlags(recipe)) {
         const token = `--${flag}`
         if (!help.includes(token)) {
@@ -50,5 +55,13 @@ describe('spec conformance', () => {
       }
     }
     expect(missing).toEqual([])
+  })
+
+  it('spec reports at least 20 aliases', () => {
+    expect(spec.options.filter((option) => option.alias).length).toBeGreaterThanOrEqual(20)
+  })
+
+  it('spec reports at least 80 deprecated entries', () => {
+    expect((spec.deprecated ?? []).length).toBeGreaterThanOrEqual(80)
   })
 })
