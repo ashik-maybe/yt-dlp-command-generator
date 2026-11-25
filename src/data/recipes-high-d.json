@@ -1,1 +1,37 @@
-[]
+[
+  {
+    "id": "template-playlist",
+    "name": "Playlist output template",
+    "args": [
+      {
+        "flag": "output",
+        "value": "%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s"
+      }
+    ],
+    "confidence": "verified"
+  },
+  {
+    "id": "template-chapter",
+    "name": "Chapter output template",
+    "args": [
+      { "flag": "split-chapters" },
+      {
+        "flag": "output",
+        "value": "chapter:%(section_number)02d - %(section_title)s.%(ext)s"
+      }
+    ],
+    "confidence": "verified"
+  },
+  {
+    "id": "stdout-pipe",
+    "name": "Stdout pipe",
+    "args": [{ "flag": "output", "value": "-" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "exec-guarded",
+    "name": "Guarded exec",
+    "args": [{ "flag": "exec", "value": "after_move:echo %(filepath)q" }],
+    "confidence": "verified"
+  }
+]
