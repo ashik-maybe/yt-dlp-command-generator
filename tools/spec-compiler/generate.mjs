@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 /**
- * Spec compiler: generate src/spec/options.json from .cache/yt-dlp-help.txt.
+ * Spec compiler: generate src/spec/options.json from .cache/yt-dlp-help.txt
+ * and from the official README.
  *
  * Parses every option line of the cached help text. Keeps flag, alias, value
  * placeholder, description and section for each option, and parses a
- * deprecated options section when one is present. Adds provenance: the
- * pinned version, the source URL, the generated date and the sha256 of the
- * cached help text.
+ * deprecated options section when one is present. Adds the DEPRECATED
+ * OPTIONS list from the README, with each entry's replacement text. Adds
+ * provenance: the pinned version, the source URL, the generated date and the
+ * sha256 of the cached help text.
  */
 
 import { createHash } from 'node:crypto'
@@ -22,6 +24,7 @@ const TOOL = 'yt-dlp'
 const VERSION = '2026.11.23'
 const PINNED_VERSION = '2026.11.23'
 const SOURCE_URL = 'https://github.com/yt-dlp/yt-dlp/releases/tag/2026.11.23'
+const README_URL = 'https://raw.githubusercontent.com/yt-dlp/yt-dlp/master/README.md'
 const HELP_FILE = '.cache/yt-dlp-help.txt'
 
 const sectionRe = /^(?:Options:|  [A-Za-z][^:]*:)$/
@@ -70,7 +73,10 @@ function parseOptionLine(line, match, lines, startIndex, section) {
     isBoolean: metavar === null,
   }
   if (metavar) option.metavar = metavar
-  const alias = aliasRe.exec(option.description)?.[1]?.replace(/^-+/, '')
+  // Alias text can wrap onto the next line, so match on the flattened
+  // description where the line breaks become plain spaces.
+  const flat = option.description.replace(/\s+/g, '')
+  const alias = aliasRe.exec(flat)?.[1]?.replace(/^-+/, '')
   if (alias) option.alias = alias
   return option
 }
@@ -102,9 +108,34 @@ function parseHelp(text) {
   return { options, deprecated }
 }
 
-function main() {
+async function fetchReadmeDeprecated() {
+  const res = await fetch(README_URL)
+  if (!res.ok) throw new Error(`README fetch failed with status ${res.status}`)
+  const lines = (await res.text()).split('\n')
+  const start = lines.findIndex((line) => line.trim() === '### Deprecated options')
+  if (start === -1) return []
+  const entries = []
+  for (let i = start + 1; i < lines.length; i++) {
+    const line = lines[i].replace(/\r$/, '')
+    if (/^#{1,2}\s/.test(line)) break
+    const m = line.match(/^\s*(-{1,2}\S.*?)\s{2,}(\S.*)$/)
+    if (!m) continue
+    const flag = m[1].trim().replace(/-+(?=\S)/g, '')
+    const replacement = m[2].trim()
+    entries.push(replacement ? `${flag} ${replacement}` : flag)
+  }
+  return entries
+}
+
+async function main() {
   const text = readFileSync(helpPath, 'utf8')
   const { options, deprecated } = parseHelp(text)
+  const seen = new Set(deprecated)
+  for (const entry of await fetchReadmeDeprecated()) {
+    if (seen.has(entry)) continue
+    seen.add(entry)
+    deprecated.push(entry)
+  }
   const spec = {
     tool: TOOL,
     version: VERSION,
