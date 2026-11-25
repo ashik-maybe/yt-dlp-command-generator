@@ -2,6 +2,10 @@ import type { Plan, Recipe, Shell } from '../core/types.ts'
 import recipesBase from '../data/recipes.json'
 import recipesExtra from '../data/recipes-extra.json'
 import recipesAdvanced from '../data/recipes-advanced.json'
+import recipesHighA from '../data/recipes-high-a.json'
+import recipesHighB from '../data/recipes-high-b.json'
+import recipesHighC from '../data/recipes-high-c.json'
+import recipesHighD from '../data/recipes-high-d.json'
 
 /** Tool name every recipe builds a plan for. */
 const TOOL = 'yt-dlp'
@@ -24,10 +28,20 @@ export function toPlan(recipe: Recipe, values: Record<string, string>, shell: Sh
 
 /** Merged recipe list from all sets, deduplicated by id; first entry wins. */
 const seen = new Set<string>()
-const recipes = [recipesBase, recipesExtra, recipesAdvanced].flat().filter((recipe) => {
-  if (seen.has(recipe.id)) return false
-  seen.add(recipe.id)
-  return true
-})
+const recipes = [
+  recipesBase,
+  recipesExtra,
+  recipesAdvanced,
+  recipesHighA,
+  recipesHighB,
+  recipesHighC,
+  recipesHighD,
+]
+  .flat()
+  .filter((recipe) => {
+    if (seen.has(recipe.id)) return false
+    seen.add(recipe.id)
+    return true
+  })
 
 export { recipes }
