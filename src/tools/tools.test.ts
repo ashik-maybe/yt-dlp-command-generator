@@ -129,6 +129,22 @@ describe('compileRuntimeSpec', () => {
   })
 })
 
+function makeSpec(flags: string[]): import('./spec-runtime/types.ts').RuntimeSpec {
+  return {
+    tool: 'yt-dlp',
+    version: '2026.01.01',
+    helpSha256: 'a'.repeat(64),
+    sections: ['General Options'],
+    deprecated: [],
+    options: flags.map((flag) => ({
+      flag,
+      description: flag,
+      section: 'General Options',
+      isBoolean: false,
+    })),
+  }
+}
+
 describe('validateAgainstRuntime', () => {
   it('returns findings for unknown flags', () => {
     const bin = makeFakeBinary()
@@ -153,5 +169,61 @@ describe('validateAgainstRuntime', () => {
       code: 'UNKNOWN_FLAG',
     })
     expect(findings[0].message).toContain('--not-a-real-flag')
+  })
+
+  it('flags exec-guarded when spec lacks --exec', () => {
+    const spec = makeSpec(['output'])
+    const recipe: Recipe = {
+      id: 'exec-guarded',
+      name: 'Guarded exec',
+      args: [{ flag: 'exec', value: 'after_move:echo %(filepath)q' }],
+      confidence: 'unverified',
+    }
+    const findings = validateAgainstRuntime(spec, recipe)
+    expect(findings.some((f) => f.code === 'UNKNOWN_FLAG' && f.message.includes('--exec'))).toBe(
+      true,
+    )
+  })
+
+  it('does not flag exec-guarded when spec has --exec', () => {
+    const spec = makeSpec(['exec', 'output'])
+    const recipe: Recipe = {
+      id: 'exec-guarded',
+      name: 'Guarded exec',
+      args: [{ flag: 'exec', value: 'after_move:echo %(filepath)q' }],
+      confidence: 'unverified',
+    }
+    expect(validateAgainstRuntime(spec, recipe)).toEqual([])
+  })
+
+  it('flags load-info-json when spec lacks it', () => {
+    const spec = makeSpec(['output'])
+    const recipe: Recipe = {
+      id: 'load-info-json',
+      name: 'Load info JSON',
+      args: [{ flag: 'load-info-json', value: 'info.json' }],
+      confidence: 'verified',
+    }
+    const findings = validateAgainstRuntime(spec, recipe)
+    expect(
+      findings.some((f) => f.code === 'UNKNOWN_FLAG' && f.message.includes('--load-info-json')),
+    ).toBe(true)
+  })
+
+  it('flags split-chapters when spec lacks it', () => {
+    const spec = makeSpec(['output'])
+    const recipe: Recipe = {
+      id: 'template-chapter',
+      name: 'Chapter output template',
+      args: [
+        { flag: 'split-chapters' },
+        { flag: 'output', value: 'chapter:%(section_number)02d - %(section_title)s.%(ext)s' },
+      ],
+      confidence: 'unverified',
+    }
+    const findings = validateAgainstRuntime(spec, recipe)
+    expect(
+      findings.some((f) => f.code === 'UNKNOWN_FLAG' && f.message.includes('--split-chapters')),
+    ).toBe(true)
   })
 })
