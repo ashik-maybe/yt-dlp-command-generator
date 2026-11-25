@@ -25,6 +25,7 @@ The web app only generates text.
 It never executes `yt-dlp`.
 It never starts a download.
 Advanced options accept raw arguments.
+The UI marks raw arguments unverified in the web app.
 The app does not check raw arguments against the spec.
 
 The web app has five sections:
@@ -39,27 +40,92 @@ The web app has five sections:
 
 The TUI runs on Linux only.
 Start it with `bun run tui`.
-It shows the outcome screen, then options, then the result.
 The default mode never executes a command.
 Use `--run` to allow execution.
-Use `--yes` to skip the confirmation prompt.
-Press `r` on the result screen to start a run in `--run` mode.
-Press `q` on the result screen to quit.
-Press Ctrl+C to abort a running command and exit.
 
-TUI commands:
+### TUI flags
+
+| Flag        | Effect                                         |
+| ----------- | ---------------------------------------------- |
+| `--version` | Print the TUI version and exit.                |
+| `--help`    | Print usage and exit.                          |
+| `--run`     | Allow command execution.                       |
+| `--yes`     | Skip the confirmation prompt before execution. |
+| `--unsafe`  | Allow unsafe recipes and unsafe raw flags.     |
+| `--force`   | Allow overwrite of an existing output file.    |
+
+### TUI fields
+
+The options screen shows these fields:
+
+- Source URL: the media URL for the command.
+- Quality: `best`, `good`, `medium`, or `low`.
+- Raw args: extra arguments appended to the plan.
+
+The shell stays `posix`.
+
+### TUI flow
+
+The TUI shows outcome, options, and result screens.
+Select an outcome on the outcome screen.
+Set fields on the options screen.
+Review the command and findings on the result screen.
+
+### Key bindings
+
+| Key          | Screen  | Action                                         |
+| ------------ | ------- | ---------------------------------------------- |
+| `Up/Down`    | Options | Move focus between fields.                     |
+| `Left/Right` | Options | Change quality.                                |
+| `Type`       | Options | Edit the focused field.                        |
+| `Enter`      | Options | Open the result screen.                        |
+| `r`          | Result  | Start the run in `--run` mode without `--yes`. |
+| `q`          | Result  | Quit.                                          |
+| `Ctrl+C`     | Any     | Abort a running command and exit.              |
+
+### Placeholder binding and blocked execution
+
+The TUI binds recipe placeholders before execution.
+An unbound placeholder creates a blocking finding.
+The TUI blocks execution when blocking findings exist.
+Resolve blocking findings before running the command.
+
+### Overwrite blocking
+
+The TUI checks the output path before execution.
+An existing output file blocks execution by default.
+Use `--force` to allow overwrite of that file.
+
+### Unsafe guard
+
+The TUI blocks unsafe recipes and unsafe raw flags by default.
+Unsafe recipes include `exec-guarded` and `stdout-pipe`.
+Unsafe raw flags include `--exec` and output to `-`.
+Use `--unsafe` to allow these cases.
+
+### Output verification
+
+The TUI verifies output after a successful run.
+When exit code is 0 and an output file exists, it checks file size.
+A non-empty output file reports output verified.
+A missing or empty output file reports verification failure.
+A run without an output file reports output verified on exit 0.
+
+### Runtime spec detection
+
+The TUI detects the local `yt-dlp` binary at runtime.
+It reads the version with `--version`.
+It compiles a runtime spec from `--help` output.
+It caches the compiled spec in the system temporary directory.
+When detection fails, the TUI shows a message.
+When no binary exists, the TUI reports a missing binary.
+
+### TUI commands
 
 - `bun run tui` starts the TUI without execution.
 - `bun run tui --run` allows execution with confirmation.
 - `bun run tui --run --yes` executes without confirmation.
 - `bun run tui:test` runs the TUI unit tests.
-
-The TUI detects the local `yt-dlp` binary at runtime.
-It reads the version with `--version`.
-It compiles a spec from the `--help` output.
-It caches the compiled spec in the system temporary directory.
-When detection fails, the TUI shows a message.
-When no binary exists, the TUI reports a missing binary.
 
 ## Coverage
 
@@ -76,7 +142,7 @@ Counts come from the checked files.
 | High-value recipes   |    16 |
 | High-value groups    |     4 |
 
-`bun run spec:check` reports the counts.  
+`bun run spec:check` reports the counts.
 It verifies the pinned version and the help file hash.
 
 ## Recipes
@@ -255,12 +321,11 @@ Review it before use.
 ## Raw arguments
 
 Advanced mode accepts raw arguments.
-The UI marks raw arguments as unverified.
-The app does not check raw arguments against the spec.
-Paste raw arguments into the Raw arguments field.
+The web UI marks raw arguments unverified.
+The web app does not check raw arguments against the spec.
+Paste raw arguments into the Raw args field.
 The TUI accepts raw arguments on the options screen.
-The TUI validates them against the runtime spec.
-The web app does not validate raw arguments.
+The TUI validates raw arguments against the runtime spec.
 
 ## Confidence labels
 
@@ -283,7 +348,7 @@ Three recipes use the `unverified` label:
 - `bunx playwright test` runs the browser tests.
 
 The full gate runs lint, format check, and typecheck.
-It also runs design lint, spec check, unit tests, and build.
+It also runs design lint, spec check, readme check, unit tests, and build.
 
 ## Known limits
 
