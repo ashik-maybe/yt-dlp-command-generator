@@ -3,23 +3,23 @@ import { readFileSync } from 'node:fs'
 const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8')
 
 const required = [
-  '--version',
-  '--help',
+  'Install',
+  'Quick start',
+  'How it works',
+  'Keys',
+  'Flags',
+  'Safety',
+  'Limits',
+  'Development',
+  'docs/REFERENCE.md',
   '--run',
   '--yes',
   '--force',
   '--unsafe',
-  'Source URL',
-  'Ctrl+C',
-  'unbound placeholder',
-  'overwrite',
-  'output verified',
-  'raw arguments unverified',
   'bun run ci',
   'bun run tui:test',
   'bun run tui:build',
   'bash scripts/package-tui.sh',
-  'bun run spec:check',
 ]
 
 const missing = required.filter((value) => !readme.includes(value))
