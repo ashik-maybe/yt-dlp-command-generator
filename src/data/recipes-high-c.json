@@ -1,1 +1,29 @@
-[]
+[
+  {
+    "id": "impersonate",
+    "name": "Impersonate client",
+    "args": [{ "flag": "impersonate", "value": "chrome" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "concurrent-fragments",
+    "name": "Concurrent fragments",
+    "args": [{ "flag": "concurrent-fragments", "value": "4" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "throttled-rate",
+    "name": "Throttled rate",
+    "args": [{ "flag": "throttled-rate", "value": "100K" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "sleep-jitter",
+    "name": "Sleep jitter",
+    "args": [
+      { "flag": "sleep-interval", "value": "10" },
+      { "flag": "max-sleep-interval", "value": "20" }
+    ],
+    "confidence": "verified"
+  }
+]
