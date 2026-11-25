@@ -76,7 +76,7 @@ Counts come from the checked files.
 | High-value recipes   |    16 |
 | High-value groups    |     4 |
 
-`bun run spec:check` verifies the counts.
+`bun run spec:check` reports the counts.  
 It verifies the pinned version and the help file hash.
 
 ## Recipes
