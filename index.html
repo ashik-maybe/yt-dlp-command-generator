@@ -10,8 +10,24 @@
       content="Turn a video link into one yt-dlp command you can paste into a terminal."
     />
     <title>Save the video. We'll write the command.</title>
+    <style>
+      .skip-link {
+        position: fixed;
+        top: -9999px;
+        left: 0;
+        width: fit-content;
+        padding: 0.5rem 1rem;
+        background: #fff;
+        color: #000;
+        z-index: 100;
+      }
+      .skip-link:focus {
+        top: 0;
+      }
+    </style>
   </head>
   <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
