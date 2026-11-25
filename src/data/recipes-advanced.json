@@ -1,0 +1,67 @@
+[
+  {
+    "id": "chapters",
+    "name": "Embed chapters",
+    "args": [{ "flag": "embed-chapters" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "thumbnails-embed",
+    "name": "Embed thumbnails",
+    "args": [{ "flag": "embed-thumbnail" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "subtitles-only",
+    "name": "Subtitles only",
+    "args": [{ "flag": "skip-download" }, { "flag": "write-subs" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "playlist-reverse",
+    "name": "Reverse playlist",
+    "args": [{ "flag": "playlist-reverse" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "archive-skip",
+    "name": "Archive and skip",
+    "args": [{ "flag": "download-archive", "value": "archive.txt" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "format-sort",
+    "name": "Sort formats",
+    "args": [{ "flag": "format-sort", "value": "res,fps" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "sponsorblock-all",
+    "name": "SponsorBlock remove all",
+    "args": [
+      {
+        "flag": "sponsorblock-remove",
+        "value": "sponsor,intro,outro,selfpromo,preview,filler,interaction,music_offtopic,hook"
+      }
+    ],
+    "confidence": "verified"
+  },
+  {
+    "id": "metadata-only",
+    "name": "Metadata only",
+    "args": [{ "flag": "write-info-json" }, { "flag": "skip-download" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "geo-bypass",
+    "name": "Geo bypass",
+    "args": [{ "flag": "xff", "value": "default" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "sleep",
+    "name": "Sleep between requests",
+    "args": [{ "flag": "sleep-requests", "value": "2" }],
+    "confidence": "verified"
+  }
+]

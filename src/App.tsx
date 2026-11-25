@@ -27,6 +27,16 @@ const OUTCOME_TO_RECIPE: Record<string, string> = {
   outcomeResumeDownload: 'archive-resume',
   outcomeListFormats: 'best-video',
   outcomeCopyCommand: 'best-video',
+  chapters: 'chapters',
+  'thumbnails-embed': 'thumbnails-embed',
+  'subtitles-only': 'subtitles-only',
+  'playlist-reverse': 'playlist-reverse',
+  'archive-skip': 'archive-skip',
+  'format-sort': 'format-sort',
+  'sponsorblock-all': 'sponsorblock-all',
+  'metadata-only': 'metadata-only',
+  'geo-bypass': 'geo-bypass',
+  sleep: 'sleep',
 }
 
 const QUALITY_TO_RECIPE: Record<string, string> = {

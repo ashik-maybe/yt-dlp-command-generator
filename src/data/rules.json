@@ -18,7 +18,10 @@
     "severity": "error",
     "message": "download-sections needs a star and a start-end range",
     "fix": "Use a value like *00:10:00-00:20:00.",
-    "valueMatches": { "flag": "download-sections", "pattern": "^\\*" }
+    "valueMatches": {
+      "flag": "download-sections",
+      "pattern": "^\\*(?:\\d{2}:\\d{2}:\\d{2}-\\d{2}:\\d{2}:\\d{2}|[a-zA-Z][^*]*)$"
+    }
   },
   {
     "code": "EMBED_SUBS_REQUIRES_SUBTITLE",

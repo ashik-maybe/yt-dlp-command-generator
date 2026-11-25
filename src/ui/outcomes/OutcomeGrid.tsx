@@ -1,9 +1,19 @@
 import {
+  Archive,
   AudioLines,
+  Book,
+  Captions,
   Copy,
   FileCog,
+  FilePen,
+  GlobeLock,
   History,
+  Hourglass,
+  Image,
   ListOrdered,
+  RotateCw,
+  Scissors,
+  SlidersHorizontal,
   Video,
   type LucideIcon,
 } from 'lucide-react'
@@ -19,6 +29,16 @@ const OUTCOME_ICONS: Record<string, LucideIcon> = {
   outcomeResumeDownload: History,
   outcomeListFormats: ListOrdered,
   outcomeCopyCommand: Copy,
+  chapters: Book,
+  'thumbnails-embed': Image,
+  'subtitles-only': Captions,
+  'playlist-reverse': RotateCw,
+  'archive-skip': Archive,
+  'format-sort': SlidersHorizontal,
+  'sponsorblock-all': Scissors,
+  'metadata-only': FilePen,
+  'geo-bypass': GlobeLock,
+  sleep: Hourglass,
 }
 
 /** Short sentence under each outcome name. */
@@ -29,6 +49,16 @@ const OUTCOME_SENTENCES: Record<string, string> = {
   outcomeResumeDownload: 'Pick up where it stopped',
   outcomeListFormats: 'See the formats yt-dlp offers',
   outcomeCopyCommand: 'Copy the ready-to-paste line',
+  chapters: 'Save chapter markers into the file',
+  'thumbnails-embed': 'Put the video thumbnail in the file',
+  'subtitles-only': 'Keep subtitles, skip the video track',
+  'playlist-reverse': 'Play the playlist in reverse order',
+  'archive-skip': 'Skip videos already in the archive',
+  'format-sort': 'Pick the best format for the run',
+  'sponsorblock-all': 'Cut out sponsor segments',
+  'metadata-only': 'Write metadata without downloading',
+  'geo-bypass': 'Reach the link through a proxy',
+  sleep: 'Add a delay before downloading',
 }
 
 interface OutcomeCardProps {
@@ -63,7 +93,7 @@ export interface OutcomeGridProps {
   onSelect?: (id: string) => void
 }
 
-/** Grid of the six outcome cards, one per outcome in src/content/index.ts. */
+/** Grid of the outcome cards, one per outcome in src/content/index.ts. */
 export function OutcomeGrid({ onSelect }: OutcomeGridProps) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">

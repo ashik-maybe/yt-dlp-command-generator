@@ -1,0 +1,62 @@
+[
+  {
+    "id": "cookies",
+    "name": "Download with cookies file",
+    "args": [{ "flag": "cookies", "value": "<path>" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "cookies-browser",
+    "name": "Cookies from browser",
+    "args": [{ "flag": "cookies-from-browser", "value": "<browser>" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "batch-file",
+    "name": "Download from batch file",
+    "args": [{ "flag": "batch-file", "value": "<path>" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "limit-rate",
+    "name": "Limit download rate",
+    "args": [{ "flag": "limit-rate", "value": "<rate>" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "retries",
+    "name": "Set retries",
+    "args": [{ "flag": "retries", "value": "<n>" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "output-template",
+    "name": "Custom output filename template",
+    "args": [{ "flag": "output", "value": "<template>" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "print-json",
+    "name": "Print metadata as JSON",
+    "args": [{ "flag": "dump-json" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "exec",
+    "name": "Run command after download",
+    "args": [{ "flag": "exec", "value": "<cmd>" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "js-runtimes",
+    "name": "Additional JavaScript runtime",
+    "args": [{ "flag": "js-runtimes", "value": "<runtime>" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "extractor-args",
+    "name": "Pass args to extractor",
+    "args": [{ "flag": "extractor-args", "value": "<ie_key>:<args>" }],
+    "confidence": "verified"
+  }
+]

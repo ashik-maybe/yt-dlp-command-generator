@@ -38,7 +38,7 @@
   {
     "id": "clip-by-section",
     "name": "Clip by time section",
-    "args": [{ "flag": "download-sections", "value": "*10:20" }],
+    "args": [{ "flag": "download-sections", "value": "*00:10:00-00:20:00" }],
     "confidence": "verified"
   },
   {
