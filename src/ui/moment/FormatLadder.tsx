@@ -1,3 +1,4 @@
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { useState, type KeyboardEvent } from 'react'
 
 interface FormatRow {
@@ -99,6 +100,9 @@ export function FormatLadder({ value = '1080p', onChange }: FormatLadderProps) {
   return (
     <div className="format-ladder">
       <fieldset className="format-ladder-rows">
+        <legend>
+          <VisuallyHidden>Quality</VisuallyHidden>
+        </legend>
         {ROWS.map((row) => {
           const active = row.id === value
           return (

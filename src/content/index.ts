@@ -25,18 +25,18 @@ function e(id: string, role: TextRole, text: string): StringEntry {
 
 /** Hero: heading and the sentence under it. */
 export const heroStrings: StringEntry[] = [
-  e('heroHeading', 'heading', "Save the video. We'll write the command."),
-  e('heroSupport', 'label', 'Paste a link, get a command.'),
+  e('heroHeading', 'heading', 'yt-dlp command generator'),
+  e('heroSupport', 'label', 'Paste a link, get a command. yt-dlp 2026.11.23 is pinned'),
 ]
 
 /** Names of the outcomes the app offers. */
 export const outcomeStrings: StringEntry[] = [
-  e('outcomeDownloadVideo', 'label', 'Video download'),
-  e('outcomeExtractAudio', 'label', 'Audio only'),
-  e('outcomeConvertFormat', 'label', 'Converted file'),
+  e('outcomeDownloadVideo', 'label', 'Download video'),
+  e('outcomeExtractAudio', 'label', 'Extract audio'),
+  e('outcomeConvertFormat', 'label', 'Convert format'),
   e('outcomeResumeDownload', 'label', 'Resume download'),
-  e('outcomeListFormats', 'label', 'Format list'),
-  e('outcomeCopyCommand', 'label', 'Command copy'),
+  e('outcomeListFormats', 'label', 'List formats'),
+  e('outcomeCopyCommand', 'label', 'Copy command'),
 ]
 
 /** Labels for format quality. */
@@ -118,6 +118,24 @@ export const validatorWarnings: WarningEntry[] = [
     id: 'warnDeprecatedFlag',
     role: 'warning',
     text: 'The plan uses a flag the spec marks deprecated',
+  },
+  {
+    code: 'DOWNLOAD_SECTIONS_INVALID',
+    id: 'warnDownloadSectionsInvalid',
+    role: 'warning',
+    text: 'The plan value needs a star and a start-end range',
+  },
+  {
+    code: 'EMBED_SUBS_REQUIRES_SUBTITLE',
+    id: 'warnEmbedSubsRequiresSubtitle',
+    role: 'warning',
+    text: 'The plan needs a subtitle option when it uses embed-subs',
+  },
+  {
+    code: 'JS_RUNTIMES_MISSING',
+    id: 'warnJsRuntimesMissing',
+    role: 'warning',
+    text: 'The plan needs js-runtimes for youtube URLs',
   },
 ]
 

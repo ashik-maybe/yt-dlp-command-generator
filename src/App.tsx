@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { Finding, Recipe, Shell } from './core/types.ts'
+import type { CSSProperties } from 'react'
+import type { Finding, Recipe } from './core/types.ts'
 import { planFromRecipe, render, validate } from './core/index.ts'
+import {
+  buildHash,
+  DEFAULT_STATE,
+  parseHash,
+  STATE_PREFIX,
+  type ShareState,
+} from './core/router.ts'
 import { coverageNote, heroStrings, validatorWarnings } from './content/index.ts'
 import { recipes } from './recipes/index.ts'
 import { spec } from './spec/index.ts'
@@ -11,53 +19,6 @@ import { FormatLadder } from './ui/moment/index.ts'
 import { OutcomeGrid } from './ui/outcomes/index.ts'
 import { Callout, Field } from './ui/primitives/index.ts'
 import { CommandReceipt } from './ui/receipt/index.ts'
-
-interface ShareState {
-  recipeId: string
-  sourceUrl: string
-  quality: string
-  shell: Shell
-  rawArgs: string
-  advancedOpen: boolean
-}
-
-const DEFAULT_STATE: ShareState = {
-  recipeId: recipes[0]?.id ?? 'best-video',
-  sourceUrl: '',
-  quality: '1080p',
-  shell: 'posix',
-  rawArgs: '',
-  advancedOpen: false,
-}
-
-const SHELLS: Shell[] = ['posix', 'powershell', 'cmd']
-
-function isShell(value: string | null): value is Shell {
-  return value !== null && SHELLS.includes(value as Shell)
-}
-
-export function parseHash(hash: string): ShareState {
-  const params = new URLSearchParams(hash.replace(/^#/, ''))
-  const recipeId = params.get('recipeId') ?? DEFAULT_STATE.recipeId
-  const sourceUrl = params.get('sourceUrl') ?? DEFAULT_STATE.sourceUrl
-  const quality = params.get('quality') ?? DEFAULT_STATE.quality
-  const shellValue = params.get('shell')
-  const shell = isShell(shellValue) ? shellValue : DEFAULT_STATE.shell
-  const rawArgs = params.get('rawArgs') ?? DEFAULT_STATE.rawArgs
-  const advancedOpen = params.get('advancedOpen') === '1'
-  return { recipeId, sourceUrl, quality, shell, rawArgs, advancedOpen }
-}
-
-export function buildHash(state: ShareState): string {
-  const params = new URLSearchParams()
-  params.set('recipeId', state.recipeId)
-  if (state.sourceUrl) params.set('sourceUrl', state.sourceUrl)
-  if (state.quality) params.set('quality', state.quality)
-  params.set('shell', state.shell)
-  if (state.rawArgs) params.set('rawArgs', state.rawArgs)
-  if (state.advancedOpen) params.set('advancedOpen', '1')
-  return `#${params.toString()}`
-}
 
 const OUTCOME_TO_RECIPE: Record<string, string> = {
   outcomeDownloadVideo: 'best-video',
@@ -95,25 +56,47 @@ function commandSentences(recipeName: string, sourceUrl: string): string[] {
   return [first, second]
 }
 
+const NAV_LINKS = [
+  { id: 'builder', label: 'Builder' },
+  { id: 'validation', label: 'Validation' },
+  { id: 'outcomes', label: 'Outcomes' },
+  { id: 'handoff', label: 'Handoff' },
+  { id: 'coverage', label: 'Coverage' },
+] as const
+
+const SCREEN_1: CSSProperties = { '--h': 1, height: '100svh' } as CSSProperties
+const SCREEN_2: CSSProperties = { '--h': 2, height: '200svh' } as CSSProperties
+
 export default function App() {
   const [state, setState] = useState<ShareState>(() => {
     if (typeof window === 'undefined') return DEFAULT_STATE
-    return parseHash(window.location.hash)
+    return parseHash(window.location.search)
   })
 
   useEffect(() => {
     const next = buildHash(state)
-    if (window.location.hash !== next) {
-      window.location.hash = next
+    if (window.location.search !== next) {
+      history.replaceState(null, '', `${window.location.pathname}${next}`)
     }
   }, [state])
 
   useEffect(() => {
     const onHashChange = () => {
-      setState(parseHash(window.location.hash))
+      // Anchor-only hashes (e.g. #builder) are navigation, not app state;
+      // the browser scrolls and focuses the target without touching state.
+      if (!window.location.search.startsWith(STATE_PREFIX)) return
+      setState(parseHash(window.location.search))
     }
     window.addEventListener('hashchange', onHashChange)
     return () => window.removeEventListener('hashchange', onHashChange)
+  }, [])
+
+  useEffect(() => {
+    const onPopState = () => {
+      setState(parseHash(window.location.search))
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
   const recipe = useMemo(
@@ -162,15 +145,33 @@ export default function App() {
     })
   }
 
+  const frameStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 'var(--space-4)',
+    borderTop: '1px dotted var(--rule)',
+    paddingTop: 'var(--space-4)',
+  } as const
+
   return (
-    <main className="app-shell">
-      <header className="hero">
-        <p className="hero-kicker">yt-dlp</p>
-        <h1 className="hero-heading">{heroHeading}</h1>
-        <p className="hero-body">{heroSupport}</p>
+    <main id="main" className="app-shell">
+      <header className="app-header">
+        <nav className="app-nav">
+          {NAV_LINKS.map((link) => (
+            <a key={link.id} className="app-nav-link" href={`#${link.id}`}>
+              {link.label}
+            </a>
+          ))}
+        </nav>
       </header>
 
-      <section className="section" aria-labelledby="url-label">
+      <section id="hero" className="section hero" style={SCREEN_1}>
+        <h1 className="hero-heading">{heroHeading}</h1>
+        <p className="hero-fact">CHECKED · {spec.version}</p>
+      </section>
+
+      <section id="builder" className="section builder" style={SCREEN_2}>
+        <p className="hero-body">{heroSupport}</p>
         <Field label="Source URL" htmlFor="source-url" description="Paste a video or playlist URL.">
           <input
             id="source-url"
@@ -184,67 +185,60 @@ export default function App() {
             onChange={(event) => update({ sourceUrl: event.target.value })}
           />
         </Field>
-      </section>
-
-      <section className="section" aria-labelledby="outcomes-heading">
-        <div className="section-head">
-          <h2 id="outcomes-heading" className="section-heading">
-            Outcome
-          </h2>
-          <p className="section-note">Choose what you want to do.</p>
-        </div>
-        <OutcomeGrid onSelect={onOutcomeSelect} />
-      </section>
-
-      <section className="section" aria-labelledby="quality-heading">
-        <div className="section-head">
-          <h2 id="quality-heading" className="section-heading">
-            Quality
-          </h2>
-          <p className="section-note">Pick the format target.</p>
-        </div>
         <FormatLadder value={state.quality} onChange={onQualityChange} />
       </section>
 
-      <section className="section" aria-labelledby="command-heading">
+      <section
+        id="validation"
+        className="section"
+        style={SCREEN_1}
+        aria-labelledby="validation-heading"
+      >
         <div className="section-head">
-          <h2 id="command-heading" className="section-heading">
-            Command
+          <h2 id="validation-heading" className="section-heading">
+            Validation
           </h2>
-          <p className="section-note">Review and copy the command.</p>
         </div>
-        {plan && (
-          <CommandReceipt
-            command={command}
-            confidence={plan.confidence}
-            version={spec.version}
-            sentences={commandSentences(recipe?.name ?? 'Recipe', state.sourceUrl)}
-          />
-        )}
-      </section>
-
-      {findings.length > 0 && (
-        <section className="section" aria-labelledby="validation-heading">
-          <div className="section-head">
-            <h2 id="validation-heading" className="section-heading">
-              Validation
-            </h2>
-          </div>
-          <div className="stack">
+        {findings.length > 0 && (
+          <div className="stack" role="alert">
             {findings.map((finding, index) => (
-              <Callout
-                key={`${finding.code}-${index}`}
-                tone={findingTone(finding.severity)}
-                title={finding.code}
-              >
+              <Callout key={`${finding.code}-${index}`} tone={findingTone(finding.severity)}>
                 {warningText(finding.code)}
               </Callout>
             ))}
           </div>
-        </section>
-      )}
+        )}
+      </section>
 
-      <section className="section" aria-labelledby="handoff-heading">
+      <section
+        id="outcomes"
+        className="section outcomes"
+        style={SCREEN_2}
+        aria-labelledby="outcomes-heading"
+      >
+        <div className="app-frame" style={frameStyle}>
+          <h2 id="outcomes-heading" className="section-heading">
+            Outcome
+          </h2>
+          <OutcomeGrid onSelect={onOutcomeSelect} />
+          {plan && (
+            <CommandReceipt
+              command={command}
+              confidence={plan.confidence}
+              version={spec.version}
+              sentences={commandSentences(recipe?.name ?? 'Recipe', state.sourceUrl)}
+            />
+          )}
+        </div>
+        <CalibrationPanel onParsed={() => {}} />
+        <AdvancedDrawer
+          open={state.advancedOpen}
+          onOpenChange={(open) => update({ advancedOpen: open })}
+        />
+        {state.rawArgs ? <p className="section-note">Raw args: {state.rawArgs}</p> : null}
+      </section>
+
+      <section id="handoff" className="section" style={SCREEN_1} aria-labelledby="handoff-heading">
         <div className="section-head">
           <h2 id="handoff-heading" className="section-heading">
             Handoff
@@ -253,30 +247,11 @@ export default function App() {
         <HandoffPanel />
       </section>
 
-      <section className="section" aria-labelledby="calibration-heading">
-        <div className="section-head">
-          <h2 id="calibration-heading" className="section-heading">
-            Calibration
-          </h2>
-        </div>
-        <CalibrationPanel onParsed={() => {}} />
-      </section>
-
-      <section className="section" aria-labelledby="advanced-heading">
-        <div className="section-head">
-          <h2 id="advanced-heading" className="section-heading">
-            Advanced
-          </h2>
-        </div>
-        <AdvancedDrawer
-          open={state.advancedOpen}
-          onOpenChange={(open) => update({ advancedOpen: open })}
-        />
-        {state.rawArgs ? <p className="section-note">Raw args: {state.rawArgs}</p> : null}
+      <section id="coverage" className="section coverage" style={SCREEN_1}>
+        <p className="coverage-note">{coverageNote.text}</p>
       </section>
 
       <footer className="app-footer">
-        <p className="coverage-note">{coverageNote.text}</p>
         <p className="close-note">Spec {spec.version}. Generated command stays local.</p>
       </footer>
     </main>

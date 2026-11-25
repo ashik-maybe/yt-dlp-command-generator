@@ -75,10 +75,13 @@ export function CommandReceipt({ command, confidence, version, sentences }: Comm
       <pre className="receipt-code" aria-live="polite" aria-label="Generated command">
         <code>{text}</code>
       </pre>
-      <Button className="receipt-copy" variant="secondary" onClick={copyCommand}>
-        {status === 'copied' ? 'Copied' : status === 'press' ? 'Press Ctrl+C' : 'Copy command'}
+      <Button className="receipt-copy" variant="primary" onClick={copyCommand}>
+        Copy command
         {status === 'copied' && <Icon icon={Check} className="receipt-copy-icon" />}
       </Button>
+      <output className="receipt-status">
+        {status === 'copied' ? 'Copied' : status === 'press' ? 'Press Ctrl+C' : ''}
+      </output>
     </div>
   )
 }
