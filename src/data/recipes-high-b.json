@@ -1,1 +1,29 @@
-[]
+[
+  {
+    "id": "parse-metadata",
+    "name": "Parse metadata",
+    "args": [{ "flag": "parse-metadata", "value": "<FROM>:<TO>" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "split-chapters",
+    "name": "Split chapters",
+    "args": [{ "flag": "split-chapters" }, { "flag": "output", "value": "chapter:<TEMPLATE>" }],
+    "confidence": "verified"
+  },
+  {
+    "id": "force-keyframes-at-cuts",
+    "name": "Force keyframes at cuts",
+    "args": [
+      { "flag": "force-keyframes-at-cuts" },
+      { "flag": "download-sections", "value": "*<START>-<END>" }
+    ],
+    "confidence": "verified"
+  },
+  {
+    "id": "load-info-json",
+    "name": "Load info JSON",
+    "args": [{ "flag": "load-info-json", "value": "<FILE>" }],
+    "confidence": "verified"
+  }
+]
