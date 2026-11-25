@@ -45,7 +45,13 @@ describe('validator rules', () => {
   })
 
   it('accepts a real download section value', () => {
-    expect(codes([{ flag: 'download-sections', value: '*10:20' }])).not.toContain(
+    expect(codes([{ flag: 'download-sections', value: '*00:10:00-00:20:00' }])).not.toContain(
+      'DOWNLOAD_SECTIONS_INVALID',
+    )
+  })
+
+  it('rejects a download-sections value without a time range', () => {
+    expect(codes([{ flag: 'download-sections', value: '*10:20' }])).toContain(
       'DOWNLOAD_SECTIONS_INVALID',
     )
   })

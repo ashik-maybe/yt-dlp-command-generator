@@ -173,7 +173,7 @@ describe('recipe golden commands', () => {
       expect(cmd.length).toBeGreaterThan(0)
       expect(cmd.startsWith('yt-dlp')).toBe(true)
       expect(cmd).not.toContain('undefined')
-      expect(cmd).toMatchInlineSnapshot(`"yt-dlp --download-sections '*10:20'"`)
+      expect(cmd).toMatchInlineSnapshot(`"yt-dlp --download-sections '*00:10:00-00:20:00'"`)
     })
     it('powershell', () => {
       const recipe = recipes.find((r) => r.id === 'clip-by-section')!
@@ -181,7 +181,7 @@ describe('recipe golden commands', () => {
       expect(cmd.length).toBeGreaterThan(0)
       expect(cmd.startsWith('yt-dlp')).toBe(true)
       expect(cmd).not.toContain('undefined')
-      expect(cmd).toMatchInlineSnapshot(`"yt-dlp --download-sections '*10:20'"`)
+      expect(cmd).toMatchInlineSnapshot(`"yt-dlp --download-sections '*00:10:00-00:20:00'"`)
     })
     it('cmd', () => {
       const recipe = recipes.find((r) => r.id === 'clip-by-section')!
@@ -189,7 +189,7 @@ describe('recipe golden commands', () => {
       expect(cmd.length).toBeGreaterThan(0)
       expect(cmd.startsWith('yt-dlp')).toBe(true)
       expect(cmd).not.toContain('undefined')
-      expect(cmd).toMatchInlineSnapshot(`"yt-dlp --download-sections "*10:20""`)
+      expect(cmd).toMatchInlineSnapshot(`"yt-dlp --download-sections "*00:10:00-00:20:00""`)
     })
   })
   describe('embed-subs', () => {
