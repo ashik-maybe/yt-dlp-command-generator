@@ -53,6 +53,39 @@ jobs:
       - name: Regenerate spec
         run: node tools/spec-compiler/generate.mjs
 
+      - name: Update coverage counts
+        run: |
+          node --input-type=module - <<'NODE'
+          import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+          const ref = 'docs/REFERENCE.md'
+          if (!existsSync(ref)) {
+            console.log('docs/REFERENCE.md missing; skipping coverage update')
+            process.exit(0)
+          }
+          const options = JSON.parse(readFileSync('src/spec/options.json', 'utf8'))
+          const readmeFlags = JSON.parse(readFileSync('src/spec/readme-flags.json', 'utf8'))
+          const rows = [
+            ['Options', String(options.options.length)],
+            ['Deprecated', String(options.deprecated.length)],
+            ['README-only flags', String(readmeFlags.flags.length)],
+            ['Sections', String(new Set(options.options.map((o) => o.section ?? 'unknown')).size)],
+          ]
+          const table = ['| Metric | Count |', '| --- | ---: |', ...rows.map(([k, v]) => `| ${k} | ${v} |`)].join('\n')
+          let text = readFileSync(ref, 'utf8')
+          const start = '<!-- coverage-counts:start -->'
+          const end = '<!-- coverage-counts:end -->'
+          if (text.includes(start) && text.includes(end)) {
+            text = text.replace(new RegExp(`${start}[\\s\\S]*?${end}`), `${start}\n${table}\n${end}`)
+          } else if (/^## Coverage counts\s*$/m.test(text)) {
+            text = text.replace(/(^## Coverage counts\s*\n)([\s\S]*?)(?=^## |\s*$)/m, `$1\n${table}\n\n`)
+          } else {
+            console.log('Coverage counts table not found; skipping')
+            process.exit(0)
+          }
+          writeFileSync(ref, text)
+          console.log('Updated coverage counts in docs/REFERENCE.md')
+          NODE
+
       - name: Run gate
         run: bun run ci
 

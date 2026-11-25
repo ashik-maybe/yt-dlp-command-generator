@@ -1,7 +1,13 @@
 name: TUI Release
 
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   package-linux:
@@ -12,12 +18,20 @@ jobs:
 
       - name: Install Bun
         uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.5
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
       - name: Run CI
         run: bun run ci
+
+      - name: Stamp version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          sed -i "s/0\\.0\\.0/${VERSION}/" src/tui/run.ts
 
       - name: Package Linux binaries
         run: bash scripts/package-tui.sh
@@ -34,11 +48,10 @@ jobs:
       - name: Write checksums
         run: sha256sum dist/yt-dlp-tui-linux-x64 dist/yt-dlp-tui-linux-arm64 > dist/yt-dlp-tui-checksums.txt
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: yt-dlp-tui-linux
-          path: |
+          files: |
             dist/yt-dlp-tui-linux-x64
             dist/yt-dlp-tui-linux-arm64
             dist/yt-dlp-tui-checksums.txt
