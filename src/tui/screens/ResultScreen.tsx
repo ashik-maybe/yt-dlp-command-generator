@@ -1,6 +1,7 @@
 import { Box, Text } from 'ink'
 import { KeyHint } from '../components/KeyHint.tsx'
 import { StatusBar } from '../components/StatusBar.tsx'
+import { glyphs, theme } from '../theme.ts'
 
 export interface ResultFinding {
   /** Finding severity. */
@@ -30,6 +31,31 @@ export interface ResultScreenProps {
   verification?: 'verified' | 'failed' | 'blocked' | null
   /** Reason shown when execution is blocked. */
   blockedReason?: string | null
+  /** Hide internal chrome when wrapped by App. */
+  embedded?: boolean
+  /** Hide raw log and shorten hints for narrow terminals. */
+  narrow?: boolean
+}
+
+export const RESULT_HINTS = [
+  { key: 'q', action: 'quit' },
+  { key: '?', action: 'help' },
+] as const
+
+export const RESULT_HINTS_NARROW = [
+  { key: 'q', action: 'quit' },
+  { key: '?', action: 'help' },
+] as const
+
+function progressBar(percent: number | null | undefined): string {
+  if (percent === null || percent === undefined || Number.isNaN(percent)) {
+    return `[${glyphs.barEmpty.repeat(10)}] --%`
+  }
+  const clamped = Math.max(0, Math.min(100, percent))
+  const width = 10
+  const filled = Math.round((clamped / 100) * width)
+  const empty = width - filled
+  return `[${glyphs.barFill.repeat(filled)}${glyphs.barEmpty.repeat(empty)}] ${Math.round(clamped)}%`
 }
 
 /** Screen for command output and findings. */
@@ -43,25 +69,37 @@ export function ResultScreen({
   rawLog,
   verification,
   blockedReason,
+  embedded = false,
+  narrow = false,
 }: ResultScreenProps) {
   const hasProgress = progressPercent !== undefined || progressSpeed !== undefined
-  return (
+  const status = running ? 'running' : 'ready'
+  const verificationColor =
+    verification === 'verified'
+      ? theme.success
+      : verification === 'failed' || verification === 'blocked'
+        ? theme.error
+        : undefined
+  const showRawLog = rawLog !== undefined && !narrow
+  const hints = narrow ? [...RESULT_HINTS_NARROW] : [...RESULT_HINTS]
+
+  const body = (
     <Box flexDirection="column">
-      <StatusBar label="Result" value={running ? 'running' : 'ready'} />
-      <Box flexDirection="column" marginTop={1}>
+      <Box flexDirection="column" marginTop={embedded ? 0 : 1}>
         <Text>Version: {version}</Text>
         <Text>Command:</Text>
-        <Text>{command}</Text>
+        <Text wrap="wrap">{command}</Text>
       </Box>
       {verification ? (
         <Box flexDirection="column" marginTop={1}>
-          <Text>Verification: {verification}</Text>
-          {blockedReason ? <Text>{blockedReason}</Text> : null}
+          <Text color={verificationColor}>Verification: {verification}</Text>
+          {blockedReason ? <Text color={theme.error}>{blockedReason}</Text> : null}
         </Box>
       ) : null}
       {hasProgress ? (
         <Box flexDirection="column" marginTop={1}>
           <Text>Progress:</Text>
+          <Text>{`  ${progressBar(progressPercent)}`}</Text>
           <Text>
             {'  '}percent: {progressPercent ?? 'unknown'}
           </Text>
@@ -82,14 +120,23 @@ export function ResultScreen({
           ))
         )}
       </Box>
-      {rawLog !== undefined ? (
+      {showRawLog ? (
         <Box flexDirection="column" marginTop={1}>
           <Text>Raw log:</Text>
-          <Text>{rawLog.length > 0 ? rawLog : ' (empty)'}</Text>
+          <Text wrap="wrap">{rawLog.length > 0 ? rawLog : ' (empty)'}</Text>
         </Box>
       ) : null}
+    </Box>
+  )
+
+  if (embedded) return body
+
+  return (
+    <Box flexDirection="column">
+      <StatusBar label="Result" value={status} />
+      {body}
       <Box marginTop={1}>
-        <KeyHint hints={[{ key: 'q', action: 'quit' }]} />
+        <KeyHint hints={hints} />
       </Box>
     </Box>
   )

@@ -1,3 +1,7 @@
+export { Chrome } from './Chrome.tsx'
+export type { ChromeProps } from './Chrome.tsx'
+export { HelpOverlay } from './HelpOverlay.tsx'
+export type { HelpOverlayProps } from './HelpOverlay.tsx'
 export { KeyHint } from './KeyHint.tsx'
 export type { KeyHintItem, KeyHintProps } from './KeyHint.tsx'
 export { StatusBar } from './StatusBar.tsx'
