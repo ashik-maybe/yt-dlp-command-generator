@@ -39,8 +39,17 @@ export function CoveragePanel() {
         </tbody>
       </table>
       <p className="coverage-note">
-        Raw arguments are unverified and downloads are not executed in the browser.
+        This web app builds commands only. The browser does not run yt-dlp. Raw arguments are
+        unverified.
       </p>
+      <div className="coverage-tui">
+        <h3 className="coverage-subheading">TUI</h3>
+        <p className="coverage-note">The TUI does the execution. Linux only.</p>
+        <p className="coverage-note">
+          Flags: <code>--run</code>, <code>--yes</code>, <code>--force</code>, <code>--unsafe</code>
+          . Press <kbd>Ctrl+C</kbd> to stop.
+        </p>
+      </div>
     </Panel>
   )
 }
